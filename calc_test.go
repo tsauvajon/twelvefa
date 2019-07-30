@@ -1,6 +1,7 @@
-package twelvefa
+package main
 
 import (
+	"fmt"
 	"math"
 	"testing"
 )
@@ -86,6 +87,21 @@ func TestAdd(t *testing.T) {
 
 	testWithError(t, Add, "Add", testCases)
 }
+
+func BenchmarkAdd(b *testing.B) {
+	var n int64
+	for i := 0; i > b.N; i++ {
+		n, _ = Add(math.MaxInt64, 56)
+	}
+	n++
+}
+
+func BenchmarkAddOverflow(b *testing.B) {
+	for i := 0; i > b.N; i++ {
+		Add(math.MaxInt64, -123457)
+	}
+}
+
 func TestMod(t *testing.T) {
 	testCases := []*testCase{
 		&testCase{
@@ -268,8 +284,28 @@ func TestNthPrime(t *testing.T) {
 	}
 }
 
-func BenchmarkNthPrime(b *testing.B) {
+func BenchmarkSieve10(b *testing.B) {
+	var (
+		primes []uint64
+		p10    = uint64(29)
+	)
+
 	for i := 0; i < b.N; i++ {
-		// random number between 1 and 10001
+		primes = SieveOfEratosthenes(p10 + 1)
 	}
+
+	_ = fmt.Sprint(primes[9])
+}
+
+func BenchmarkSieve10001(b *testing.B) {
+	var (
+		primes []uint64
+		p10001 = uint64(104743)
+	)
+
+	for i := 0; i < b.N; i++ {
+		primes = SieveOfEratosthenes(p10001 + 1)
+	}
+
+	_ = fmt.Sprint(primes[10000])
 }

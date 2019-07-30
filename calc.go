@@ -1,4 +1,4 @@
-package twelvefa
+package main
 
 import (
 	"fmt"
