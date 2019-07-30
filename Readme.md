@@ -4,6 +4,16 @@
 
 [TODO]
 
+## Usage
+
+### Test
+
+`go test`
+
+### Benchmark
+
+`go test -bench=.`
+
 ## 12 Factors
 
 https://12factor.net/
