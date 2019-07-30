@@ -1,10 +1,13 @@
 # Use a tagged version instead of latest to avoid regressions
 # Use alpine for faster pulls on slow connections - like mine
-FROM golang:1.12.7-alpine3.10
+FROM golang:1.12.7-alpine3.10 as builder
 
 # Copy the local package files to the container's workspace.
 WORKDIR /root/twelvefa/
 COPY . .
+
+# Set a location to install dependencies
+ENV GOBIN=/go/bin/
 
 # Get the depencies
 RUN go get
