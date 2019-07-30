@@ -280,8 +280,12 @@ func TestSieve(t *testing.T) {
 
 func TestNthPrimes(t *testing.T) {
 	in := []uint64{12, 9658, 789, 10001, 2, 2345}
-	out := NthPrimes(in)
 	expected := []uint64{37, 100801, 6047, 104743, 3, 20849}
+	out, err := NthPrimes(in)
+
+	if err != nil {
+		t.Errorf("test failed with error: %s", err)
+	}
 
 	if len(out) != len(expected) {
 		t.Errorf(

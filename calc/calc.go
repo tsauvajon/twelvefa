@@ -43,7 +43,7 @@ func Min(a, b int64) int64 {
 // NthPrimes : solve Project Euler problem #7 up to the 10001th prime
 // using the Sieve of Eratosthenes
 // https://projecteuler.net/problem=7
-func NthPrimes(n []uint64) []uint64 {
+func NthPrimes(n []uint64) ([]uint64, error) {
 	// 10001th prime is 104743
 	n10001 := uint64(104743)
 	primes := SieveOfEratosthenes(n10001 + 1)
@@ -51,12 +51,12 @@ func NthPrimes(n []uint64) []uint64 {
 	nthPrimes := make([]uint64, len(n))
 
 	for i, nthPrime := range n {
-		if nthPrime > 10001 {
-			panic("out of range")
+		if nthPrime > 10001 || nthPrime < 1 {
+			return nil, newErrOutOfRange("1 <= n <= 10001")
 		}
 		nthPrimes[i] = primes[nthPrime-1]
 	}
-	return nthPrimes
+	return nthPrimes, nil
 }
 
 // SieveOfEratosthenes : pre-calculate all the prime numbers up to a ertain point
