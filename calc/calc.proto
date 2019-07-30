@@ -30,5 +30,5 @@ message NthPrimesRequest {
 }
 
 message NthPrimesResponse {
-    repeated uint64 nthPrime = 1;
+    repeated uint64 nthPrimes = 1;
 }
