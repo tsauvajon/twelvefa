@@ -16,8 +16,6 @@
 
 ## 12 Factors
 
-https://12factor.net/
-
 ### I. Codebase
 *One codebase tracked in revision control, many deploys*
 
@@ -107,3 +105,16 @@ A:
 ## Next steps
 
 [TODO]
+
+
+## Sources used
+
+- 12factor: https://12factor.net/
+- Go Modules: https://github.com/golang/go/wiki/Modules
+- Protobuf:
+  - Documentation: https://developers.google.com/protocol-buffers/
+  - Tutorial: https://medium.com/@shijuvar/building-high-performance-apis-in-go-using-grpc-and-protocol-buffers-2eda5b80771b
+- Testing: https://golang.org/pkg/testing/
+- NthPrimeNumber:
+  - Euleur challenge: https://projecteuler.net/problem=7
+  - Sieve of Erathostenes: https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes
