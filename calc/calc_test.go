@@ -278,9 +278,9 @@ func TestSieve(t *testing.T) {
 	}
 }
 
-func TestNthPrime(t *testing.T) {
+func TestNthPrimes(t *testing.T) {
 	in := []uint64{12, 9658, 789, 10001, 2, 2345}
-	out := NthPrime(in)
+	out := NthPrimes(in)
 	expected := []uint64{37, 100801, 6047, 104743, 3, 20849}
 
 	if len(out) != len(expected) {

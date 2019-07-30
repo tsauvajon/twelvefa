@@ -40,10 +40,10 @@ func Min(a, b int64) int64 {
 	return b
 }
 
-// NthPrime : solve Project Euler problem #7 up to the 10001th prime
+// NthPrimes : solve Project Euler problem #7 up to the 10001th prime
 // using the Sieve of Eratosthenes
 // https://projecteuler.net/problem=7
-func NthPrime(n []uint64) []uint64 {
+func NthPrimes(n []uint64) []uint64 {
 	// 10001th prime is 104743
 	n10001 := uint64(104743)
 	primes := SieveOfEratosthenes(n10001 + 1)
