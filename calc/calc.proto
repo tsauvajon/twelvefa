@@ -1,0 +1,35 @@
+syntax = "proto3";
+package calc;
+
+service Calc {
+    rpc Max(MaxRequest) returns (MaxResponse) {}
+    rpc Add(AddRequest) returns (AddResponse) {}
+    rpc NthPrimes(NthPrimesRequest) returns (NthPrimesResponse) {}
+}
+
+message MaxRequest {
+    int64 a = 1;
+    int64 b = 2;
+}
+
+message MaxResponse {
+    int64 max = 1;
+}
+
+message AddRequest {
+    int64 a = 1;
+    int64 b = 2;
+}
+
+message AddResponse {
+    int64 a = 1;
+    string err = 2; // I'm not happy with using the string type for errors. Change later
+}
+
+message NthPrimesRequest {
+    repeated uint64 n = 1;
+}
+
+message NthPrimesResponse {
+    repeated uint64 nthPrime = 1;
+}
