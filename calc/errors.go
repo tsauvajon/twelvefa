@@ -31,3 +31,19 @@ func newErrZeroDivision(message string) *ErrZeroDivision {
 func (e *ErrZeroDivision) Error() string {
 	return e.message
 }
+
+// ErrOutOfRange : input is not in the defined range
+type ErrOutOfRange struct {
+	message string
+}
+
+func newErrOutOfRange(message string) *ErrOutOfRange {
+	return &ErrOutOfRange{
+		message: message,
+	}
+}
+
+// Error formats the error as a string
+func (e *ErrOutOfRange) Error() string {
+	return e.message
+}

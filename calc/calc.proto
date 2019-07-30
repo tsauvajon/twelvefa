@@ -22,8 +22,7 @@ message AddRequest {
 }
 
 message AddResponse {
-    int64 a = 1;
-    string err = 2; // I'm not happy with using the string type for errors. Change later
+    int64 sum = 1;
 }
 
 message NthPrimesRequest {
