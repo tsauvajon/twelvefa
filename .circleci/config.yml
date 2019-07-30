@@ -1,0 +1,29 @@
+version: 2
+jobs:
+  test:
+    docker:
+      - image: circleci/golang:1.12.7
+
+    working_directory: /root/twelvefa
+    steps:
+      - checkout
+
+      - run: ./install.ci.sh
+      - run: go test -v . ./calc > tests.txt
+      - run: go test ./calc -bench=.
+  build:
+    docker:
+      - image: circleci/buildpack-deps:buster-dind
+
+    working_directory: /root/twelvefa
+    steps:
+      - checkout
+
+      # - run: >-
+      #     docker build
+      #     -t gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
+      #     --build-arg CIRCLECI_BUILD_NUMBER=${CIRCLE_BUILD_NUM} .
+
+
+
+

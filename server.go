@@ -6,6 +6,10 @@ import (
 	"github.com/tsauvajon/twelvefa/calc"
 )
 
+// server contains the methods available with the gRPC server
+// it implements the calc.CalcServer interface
+type server struct{}
+
 func (s *server) Add(ctx context.Context, in *calc.AddRequest) (*calc.AddResponse, error) {
 	sum, err := calc.Add(in.A, in.B)
 

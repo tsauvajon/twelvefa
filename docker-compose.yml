@@ -6,3 +6,10 @@ services:
     restart: always
     ports:
       - "3000:80"
+  calcli:
+    build:
+      context: .
+      dockerfile: ./cli/Dockerfile
+    restart: always
+    depends_on:
+      - twelvefa
