@@ -18,6 +18,10 @@
 
 `./generate.sh calc`
 
+### Debug
+
+`docker-compose up`
+
 ## 12 Factors
 
 ### I. Codebase
@@ -104,7 +108,20 @@ A:
 Q: **How would this service be accessed and used from an external client from
 the cluster?**
 
-A:
+A: To access the service from an external client from the cluster, I would have
+to add a Reverse Proxy. I could be using any web server or proxy, but my first
+choice would be nginx as it is lightweight, easy to configure and plays well
+in a microservices environment.
+The schema would be basically the same for any Cloud Provider:
+- create a Public IP address
+- associate it with the Kubernetes cluster
+- create a rule/security group to allow tcp 80 and/or tcp 443 through (or any other port used)
+- redirect the traffic from this IP to the reverse proxy service (e.g. using an Ingress)
+- add a rule in the reverse proxy to forward requests and responses between the
+client and the internal service; any load-balancing rule would be useful here
+
+This way, there is no direct access to the internal service, and the only open
+route is through the reverse proxy.
 
 ## Next steps
 
@@ -120,5 +137,5 @@ A:
   - Tutorial: https://medium.com/@shijuvar/building-high-performance-apis-in-go-using-grpc-and-protocol-buffers-2eda5b80771b
 - Testing: https://golang.org/pkg/testing/
 - NthPrimesNumber:
-  - Euleur challenge: https://projecteuler.net/problem=7
+  - Euler challenge: https://projecteuler.net/problem=7
   - Sieve of Erathostenes: https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes
