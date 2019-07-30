@@ -1,8 +1,8 @@
 gen_dir()
 {
-    for file in *.proto
+    for file in $1/*.proto
     do
-        protoc -I=$1 --go_out=$1 $1/$file
+        protoc -I=$1 --go_out=$1 $file
     done
 }
 

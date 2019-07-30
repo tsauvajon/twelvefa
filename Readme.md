@@ -14,6 +14,10 @@
 
 `go test ./calc -bench=.`
 
+### Generate the .pb.go files
+
+`./generate.sh calc`
+
 ## 12 Factors
 
 ### I. Codebase
