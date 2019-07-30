@@ -8,11 +8,11 @@
 
 ### Test
 
-`go test`
+`go test ./calc`
 
 ### Benchmark
 
-`go test -bench=.`
+`go test ./calc -bench=.`
 
 ## 12 Factors
 
@@ -115,6 +115,6 @@ A:
   - Documentation: https://developers.google.com/protocol-buffers/
   - Tutorial: https://medium.com/@shijuvar/building-high-performance-apis-in-go-using-grpc-and-protocol-buffers-2eda5b80771b
 - Testing: https://golang.org/pkg/testing/
-- NthPrimeNumber:
+- NthPrimesNumber:
   - Euleur challenge: https://projecteuler.net/problem=7
   - Sieve of Erathostenes: https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes
