@@ -1,4 +1,4 @@
-package twelvefa
+package main
 
 // ErrIntOverflow : integer overflow or underflow
 type ErrIntOverflow struct {
