@@ -279,8 +279,23 @@ func TestSieve(t *testing.T) {
 }
 
 func TestNthPrime(t *testing.T) {
-	if nth := NthPrime(10001); nth != 104743 {
-		t.Errorf("expcted 104743, got %d", nth)
+	in := []uint64{12, 9658, 789, 10001, 2, 2345}
+	out := NthPrime(in)
+	expected := []uint64{37, 100801, 6047, 104743, 3, 20849}
+
+	if len(out) != len(expected) {
+		t.Errorf(
+			"the slice length doesn't match - expected %d elements, got %d",
+			len(expected),
+			len(out),
+		)
+		return
+	}
+
+	for i, actual := range out {
+		if actual != expected[i] {
+			t.Errorf("expected the %dth prime to be %d, got %d", i, expected[i], actual)
+		}
 	}
 }
 
