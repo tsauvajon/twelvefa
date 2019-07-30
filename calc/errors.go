@@ -1,4 +1,4 @@
-package main
+package calc
 
 // ErrIntOverflow : integer overflow or underflow
 type ErrIntOverflow struct {

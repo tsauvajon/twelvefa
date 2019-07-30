@@ -1,4 +1,5 @@
-package main
+// Package calc provides basic calculations
+package calc
 
 import (
 	"fmt"
