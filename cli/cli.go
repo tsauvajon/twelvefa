@@ -57,7 +57,7 @@ func main() {
 	conn, err := grpc.Dial(cli.client.address,
 		grpc.WithBlock(),                // check we can reach the server
 		grpc.WithTimeout(5*time.Second), // but not forever
-		grpc.WithInsecure(),             // TODO: SSL
+		grpc.WithInsecure(),
 	)
 
 	if err != nil {

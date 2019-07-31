@@ -4,26 +4,151 @@ jobs:
     docker:
       - image: circleci/golang:1.12.7
 
-    working_directory: /root/twelvefa
+    working_directory: /home/circleci/twelvefa
     steps:
       - checkout
 
-      - run: ./install.ci.sh
-      - run: go test -v . ./calc > tests.txt
-      - run: go test ./calc -bench=.
+      - run:
+          name: Init
+          command: |
+            chmod +x install.ci.sh
+            ./install.ci.sh
+            mkdir artifacts
+
+      - run:
+          name: Build
+          command: |
+            chmod +x generate.ci.sh
+            ./generate.ci.sh
+            go build
+
+      - run:
+          name: Test the service
+          command: |
+            go test -v . ./calc > ./artifacts/tests.txt
+            cat ./artifacts/tests.txt
+
+      - run:
+          name: Benchmark calc
+          command: |
+            go test ./calc -bench=. > ./artifacts/benchmark.txt
+            cat ./artifacts/benchmark.txt
+
+      - run:
+          name: Test the client
+          command: |
+            PORT=3000 ./twelvefa & # run the service in the background to test the client
+            sleep 5 # wait for the service to start
+            go test -v ./cli > ./artifacts/cli-tests.txt
+            cat ./artifacts/cli-tests.txt
+
+      - store_artifacts:
+          path: artifacts
+
   build:
     docker:
-      - image: circleci/buildpack-deps:buster-dind
+      - image: google/cloud-sdk:255.0.0
 
-    working_directory: /root/twelvefa
+    working_directory: /home/circleci/twelvefa
+    environment:
+      SERVICE_IMAGE_NAME: twelvefa
+      CLI_IMAGE_NAME: calcli
+      CIRCLECI_CREDS: ./creds/circleci.json
     steps:
       - checkout
 
-      # - run: >-
-      #     docker build
-      #     -t gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
-      #     --build-arg CIRCLECI_BUILD_NUMBER=${CIRCLE_BUILD_NUM} .
+      - run:
+          name: Install Docker # from a downloaded binary
+          command: |
+            set -x # better output formatting
+            VER="19.03.1"
+            curl -L -o /tmp/docker-$VER.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$VER.tgz
+            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+            mv -f /tmp/docker/* /usr/bin
+
+      # Necessary step with CircleCI to use a newly installed Docker
+      # https://circleci.com/docs/2.0/building-docker-images/#overview
+      - setup_remote_docker
+
+      - run:
+          name: Build the service Docker image
+          command: >-
+            docker build
+            -t gcr.io/${GOOGLE_PROJECT_ID}/${SERVICE_IMAGE_NAME}:latest
+            --build-arg CIRCLECI_BUILD_NUMBER=${CIRCLE_BUILD_NUM} .
+
+      - run:
+          name: Build the CLI Docker image
+          command: >-
+            docker build
+            -t gcr.io/${GOOGLE_PROJECT_ID}/${CLI_IMAGE_NAME}:latest
+            --build-arg CIRCLECI_BUILD_NUMBER=${CIRCLE_BUILD_NUM} .
+
+      - run:
+          name: Tag the service image with build nb
+          command: >-
+            docker tag
+            gcr.io/${GOOGLE_PROJECT_ID}/${SERVICE_IMAGE_NAME}:latest
+            gcr.io/${GOOGLE_PROJECT_ID}/${SERVICE_IMAGE_NAME}:${CIRCLE_BUILD_NUM}
+
+      - run:
+          name: Tag the CLI image with build nb
+          command: >-
+            docker tag
+            gcr.io/${GOOGLE_PROJECT_ID}/${CLI_IMAGE_NAME}:latest
+            gcr.io/${GOOGLE_PROJECT_ID}/${CLI_IMAGE_NAME}:${CIRCLE_BUILD_NUM}
+
+      - run:
+          name: Init the gcloud SDK
+          command: |
+            mkdir creds
+            echo ${GOOGLE_CIRCLECI} > $CIRCLECI_CREDS
+            gcloud auth activate-service-account --key-file $CIRCLECI_CREDS
+            gcloud config set project ${GOOGLE_PROJECT_ID}
+            gcloud config set compute/zone ${GOOGLE_COMPUTE_ZONE}
+
+      - run:
+          name: Push images to the Container Registry
+          command: |
+            gcloud auth configure-docker
+            docker push gcr.io/${GOOGLE_PROJECT_ID}/${SERVICE_IMAGE_NAME}:latest
+            docker push gcr.io/${GOOGLE_PROJECT_ID}/${SERVICE_IMAGE_NAME}:${CIRCLE_BUILD_NUM}
+            docker push gcr.io/${GOOGLE_PROJECT_ID}/${CLI_IMAGE_NAME}:latest
+            docker push gcr.io/${GOOGLE_PROJECT_ID}/${CLI_IMAGE_NAME}:${CIRCLE_BUILD_NUM}
 
 
+  deploy:
+    docker:
+      - image: google/cloud-sdk:255.0.0
 
+    working_directory: /home/circleci/twelvefa
+    environment:
+      SERVICE_IMAGE_NAME: twelvefa
+      TF_CREDS: ./creds/terraform.json
+    steps:
+      - checkout
 
+      - run:
+          name: Init the gcloud SDK
+          command: |
+            mkdir creds
+            echo ${GOOGLE_TERRAFORM} > $TF_CREDS
+            gcloud auth activate-service-account --key-file $TF_CREDS
+            gcloud config set project ${GOOGLE_PROJECT_ID}
+            gcloud config set compute/zone ${GOOGLE_COMPUTE_ZONE}
+            gcloud container clusters get-credentials ${GOOGLE_CLUSTER_NAME}
+
+      - run:
+          name: Apply the infrastructure
+          command: |
+            terraform apply -auto-approve
+            kubectl apply -f k8s
+
+workflows:
+  version: 2
+  workflow:
+    jobs:
+      - test
+      - build:
+          requires:
+            - test

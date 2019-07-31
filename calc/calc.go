@@ -1,4 +1,5 @@
 // Package calc provides basic calculations
+// I ended up using only Add/Max/NthPrimes for now
 package calc
 
 import (

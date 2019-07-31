@@ -1,0 +1,13 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: calcli
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    spec:
+      containers:
+      - image: calcli
+        name: calcli
+      restartPolicy: Always

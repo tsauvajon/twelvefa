@@ -2,15 +2,58 @@
 
 ## Summary
 
-[TODO]
+This repository contains a microservices and a CLI to use this service, following
+the [12factor](https://12factor.net/) principles.
 
-## Usage
+The CLI allows you to connect to a gRPC server: `cli connect $address`. Once
+successfully connected, you enter the interactive mode where you can enter 5
+commands:
+- `exit` to quit the interactive mode
+- `add x y` to add two integers together: `add 2 5     // 7`
+- `max x y` to return the max of two integers: `max 2 5     // 5`
+- `np x [y [z...]]` to return the nth prime numbers: `np 2 12      // 3 37`
+- `help` to display a help message
+
+More about the nth prime number: the first prime numbers are 2 3 5 7.
+Therefore, the 1st prime number is 2, the 2nd prime number is 3, the 3rd is 5 and
+so on. The command allows you to fetch any number of nth prime numbers at a time.
+
+## Repository structure
+
+`./calc` contains the 'business implementation' - in reality, returning basic values
+from inputs. It also contains the protobuf definition and the generated protobuf
+`.pb.go` files.
+I chose to use [Protocol buffers](https://developers.google.com/protocol-buffers/),
+because it plays well with gRPC and allowed me to develop a client/server
+prototype quickly.
+
+The root repository contains the repository CI configuration (scripts, Docker, gitignore...)
+as well as the server code. The server API is defined in `server.go` and the service
+entrypoint is in `main.go`.
+
+The CLI can be found in the eponym folder: `./cli`. The client API is defined in
+`client.go`, the interactive commands are isolated in `./commands` and the logic
+is in the entrypoint, `cli.go`.
+
+## Run using Docker Compose
+
+```
+docker-compose up -d twelvefa
+docker-compose run calcli
+./cli help
+./cli connect twelvefa:80
+> max 2 6
+> np 9999 1234 1 2 3 4
+> exit
+```
+
+## Run from source
 
 ```
 # install the dependencies
 ./install.sh
 
-# generate the .pb.go files
+# regenerate the protobuf files
 ./generate.sh calc
 
 # test
@@ -19,10 +62,32 @@ go test . ./calc
 # benchmark
 go test ./calc -bench=.
 
-# run a cli
-docker-compose up
-docker exec -it calcli /bin/bash
+# build and run the server
+go build
+PORT=3000 ./twelvefa
+
+# open a new terminal
+cd ./cli
+go build
+./cli connect :3000
+> max 2 6
+> np 9999 1234 1 2 3 4
+> exit
 ```
+
+## Deploy
+
+Most of the steps for creating the GCP project are described in `init-gcp.sh`.  
+This file has not been tested, consider running each command manually. I think
+I forgot to include a few of the commands I ran.
+
+After the project was correctly configured, the service is deployed on GKE
+by CircleCI.
+
+Env variables to set:
+`TF_VAR_billing_account`: `gcloud beta billing accounts list`
+`TF_CREDS`: where to save the creds json file.
+`PROJECT_ID`: GCP Project ID
 
 ## 12 Factors
 
@@ -124,11 +189,22 @@ Future tasks could include database migrations, installing multiple dependencies
 
 ## Cloud Native
 
+Q: **Prove how it fits and uses the best cloud native understanding**
+
+A: This applications leverages the Cloud by abstracting all of the infrastructure
+and networking, allowing this repository to focus on the actual code. The
+infrastructure, network. build steps are not manually configured and deployed,
+but merely described through configuration files (Docker/Kubernetes/Terraform...).
+
+The different parts of the application are loosely coupled, and are easy to
+replace, update or horizontally scale by simply adding more machines (note: at a
+bigger scale, other bottlenecks will appear, such a monitoring/databases).
+
 ## Event Store
 
 Q: **How would you expand on this service to allow for the use of an eventstore?**
 
-A: 
+A: [TODO]
 
 ## External Access
 
@@ -136,7 +212,12 @@ Q: **How would this service be accessed and used from an external client from
 the cluster?**
 
 A: To access the service from an external client from the cluster, I would have
-to add a Reverse Proxy. I could be using any web server or proxy, but my first
+to either expose the service directly through a public IP, or use a Reverse Proxy.
+The advantage of a reverse proxy is that you can manage the SSL certificates,
+routing, load balancing etc. outside of the actual service. It also removes any
+direct access to the internal service, the only open route is through the reverse
+proxy.
+I could be using any web server or proxy, but my first
 choice would be nginx as it is lightweight, easy to configure and plays well
 in a microservices environment.
 The schema would be basically the same for any Cloud Provider:
@@ -145,25 +226,49 @@ The schema would be basically the same for any Cloud Provider:
 - create a rule/security group to allow tcp 80 and/or tcp 443 through (or any other port used)
 - redirect the traffic from this IP to the reverse proxy service (e.g. using an Ingress)
 - add a rule in the reverse proxy to forward requests and responses between the
-client and the internal service; any load-balancing rule would be useful here
+client and the internal service; any load-balancing rule would be useful here.
 
-This way, there is no direct access to the internal service, and the only open
-route is through the reverse proxy.
+Example ingress.yaml, after having deployed nginx in the cluster:
+```
+kind: Ingress
+metadata:
+  name: yaml-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: ingress-static
+spec:
+  backend:
+    serviceName: nginx
+    servicePort: 80
+```
+
+## Configuration
+
+Environment variables to set.
+
+### In CircleCI
+- `GOOGLE_CIRCLECI`: GCP CircleCI service account credentials (json content)
+- `GOOGLE_TERRRAFORM`: GCP Terraform service account credentials (json content)
+- `GOOGLE_CLUSTER_NAME`: GKE cluster name
+- `GOOGLE_COMPUTE_ZONE`: `us-east1-c` for example
+- `GOOGLE_REGION`: `us-east1` for example
+- `GOOGLE_PROJECT_ID`: `ori-tsauvajon`
+
+### Local environment
+
+[TODO]
 
 ## Next steps
 
-- Create a secure connection with 
-- Cache the dependencies for faster Docker builds
-- Improve monitoring: use New Relic, Data Dog or grafana to create useful dashboards
-- Improve logging: write more logs, e.g. log errors
+- Add end to end tests (run a server, run commands in the CLI, check results)
+- Automate project creation, API enabling... with Terraform
+- Cache the dependencies for faster Docker builds (both locally and in the CI)
 - Use a configuration manager: use Vault or KMS to manage configs
-- Create a staging environment: duplicate the infrastructure, config and
-deployments to allow for better end-to-end testing before deployment
-- As the service or the ecosystem grows bigger, consider deployment/testing
-strategies that scale better (blue-green, canary...)
+- Create a staging environment to allow for better end-to-end testing before deployment
 - Think about rate limiting at some point
+- Improve logging: write more logs, e.g. log errors
+- Improve monitoring: use New Relic, Data Dog or grafana to create useful dashboards
 
-## Sources used
+## Sources
 
 - 12factor: https://12factor.net/
 - Go Modules: https://github.com/golang/go/wiki/Modules
@@ -174,3 +279,4 @@ strategies that scale better (blue-green, canary...)
 - NthPrimesNumber:
   - Euler challenge: https://projecteuler.net/problem=7
   - Sieve of Erathostenes: https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes
+- Event Sourcing: https://martinfowler.com/eaaDev/EventSourcing.html
