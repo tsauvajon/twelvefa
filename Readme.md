@@ -26,8 +26,9 @@ docker exec -it calcli /bin/bash
 
 ## Deploy
 
-All the steps for creating the GCP project are described in `gcp.sh`.  
-This file has not been tested, consider running each command manually.
+Most of the steps for creating the GCP project are described in `init-gcp.sh`.  
+This file has not been tested, consider running each command manually. I think
+I forgot to include a few of the commands I ran.
 
 After the project was correctly configured, the service is deployed on GKE
 by CircleCI.
