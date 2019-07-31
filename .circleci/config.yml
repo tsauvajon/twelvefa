@@ -19,11 +19,24 @@ jobs:
     steps:
       - checkout
 
-      # - run: >-
-      #     docker build
-      #     -t gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
-      #     --build-arg CIRCLECI_BUILD_NUMBER=${CIRCLE_BUILD_NUM} .
+      - run: >-
+          docker build
+          -t gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
+          --build-arg CIRCLECI_BUILD_NUMBER=${CIRCLE_BUILD_NUM} .
+        
+      - run: >-
+          docker tag
+          gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
+          gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:${CIRCLE_BUILD_NUM}
 
+      - run: docker push gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
+      - run: docker push gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:${CIRCLE_BUILD_NUM}
 
-
-
+workflows:
+  version: 2
+  workflow:
+    jobs:
+      - test
+      - build:
+          requires:
+            - test

@@ -4,7 +4,7 @@
 
 [TODO]
 
-## Usage
+## Basic usage
 
 ```
 # install the dependencies
@@ -23,6 +23,19 @@ go test ./calc -bench=.
 docker-compose up
 docker exec -it calcli /bin/bash
 ```
+
+## Deploy
+
+All the steps for creating the GCP project are described in `gcp.sh`.  
+This file has not been tested, consider running each command manually.
+
+After the project was correctly configured, the service is deployed on GKE
+by CircleCI.
+
+Env variables to set:
+`TF_VAR_billing_account`: `gcloud beta billing accounts list`
+`TF_CREDS`: where to save the creds json file.
+`PROJECT_ID`: GCP Project ID
 
 ## 12 Factors
 
@@ -152,9 +165,9 @@ route is through the reverse proxy.
 
 ## Next steps
 
-- Create a secure connection with 
+- automate project creation, API enabling... with Terraform
+- Create a secure connection with SSL
 - Cache the dependencies for faster Docker builds
-- Improve monitoring: use New Relic, Data Dog or grafana to create useful dashboards
 - Improve logging: write more logs, e.g. log errors
 - Use a configuration manager: use Vault or KMS to manage configs
 - Create a staging environment: duplicate the infrastructure, config and
@@ -162,6 +175,7 @@ deployments to allow for better end-to-end testing before deployment
 - As the service or the ecosystem grows bigger, consider deployment/testing
 strategies that scale better (blue-green, canary...)
 - Think about rate limiting at some point
+- Improve monitoring: use New Relic, Data Dog or grafana to create useful dashboards
 
 ## Sources used
 
