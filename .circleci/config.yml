@@ -7,7 +7,6 @@ jobs:
     working_directory: /home/circleci/twelvefa
     steps:
       - checkout
-
       - run: ./install.ci.sh
       - run: go test -v . ./calc > tests.txt
       - run: cat tests.txt
@@ -19,7 +18,7 @@ jobs:
     docker:
       - image: google/cloud-sdk:255.0.0
 
-    working_directory: /home/circleci/
+    working_directory: /home/circleci/twelvefa
     environment:
       IMAGE_NAME: twelvefa
     steps:
@@ -36,7 +35,7 @@ jobs:
 
       # Necessary step with CircleCI to use a newly installed Docker
       # https://circleci.com/docs/2.0/building-docker-images/#overview
-      - type: setup_remote_docker
+      - setup_remote_docker
 
       - run: 
           name: Build server
