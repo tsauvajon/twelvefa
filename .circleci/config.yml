@@ -10,27 +10,58 @@ jobs:
 
       - run: ./install.ci.sh
       - run: go test -v . ./calc > tests.txt
-      - run: go test ./calc -bench=.
+      - run: cat tests.txt
+      - run: go test ./calc -bench=. > benchmark.txt
+      - run: cat benchmark.txt
+
+
   build:
     docker:
-      - image: circleci/buildpack-deps:buster-dind
+      - image: google/cloud-sdk:255.0.0
 
-    working_directory: /home/circleci/twelvefa
+    working_directory: /home/circleci/
+    environment:
+      IMAGE_NAME: twelvefa
     steps:
       - checkout
 
-      - run: >-
-          docker build
-          -t gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
-          --build-arg CIRCLECI_BUILD_NUMBER=${CIRCLE_BUILD_NUM} .
-        
-      - run: >-
-          docker tag
-          gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
-          gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:${CIRCLE_BUILD_NUM}
+      - run:
+          name: Install Docker # from a downloaded binary
+          command: |
+            set -x # better output formatting
+            VER="19.03.1"
+            curl -L -o /tmp/docker-$VER.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$VER.tgz
+            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+            mv -f /tmp/docker/* /usr/bin
 
-      - run: docker push gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
-      - run: docker push gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:${CIRCLE_BUILD_NUM}
+      # Necessary step with CircleCI to use a newly installed Docker
+      # https://circleci.com/docs/2.0/building-docker-images/#overview
+      - type: setup_remote_docker
+
+      - run: 
+          name: Build server
+          command: >-
+            docker build
+            -t gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
+            --build-arg CIRCLECI_BUILD_NUMBER=${CIRCLE_BUILD_NUM} .
+        
+      - run: 
+          name: Tag image with build nb
+          command: >-
+            docker tag
+            gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
+            gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:${CIRCLE_BUILD_NUM}
+
+      # TODO: login with gcloud
+
+      # - run: 
+      #     name: Push images
+      #     command: |
+      #       docker push gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
+      #       docker push gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:${CIRCLE_BUILD_NUM}
+
+
+        ## TODO: deploy in another job
 
 workflows:
   version: 2
