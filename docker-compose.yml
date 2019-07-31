@@ -4,6 +4,8 @@ services:
     build:
       context: .
     restart: always
+    environment:
+      - PORT=80
     ports:
       - "3000:80"
   calcli:

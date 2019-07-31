@@ -2,15 +2,58 @@
 
 ## Summary
 
-[TODO]
+This repository contains a microservices and a CLI to use this service, following
+the [12factor](https://12factor.net/) principles.
 
-## Basic usage
+The CLI allows you to connect to a gRPC server: `cli connect $address`. Once
+successfully connected, you enter the interactive mode where you can enter 5
+commands:
+- `exit` to quit the interactive mode
+- `add a b` to add two integers together: `add 2 5     // 7`
+- `max a b` to return the max of two integers: `max 2 5     // 5`
+- `np a [b [c...]]` to return the nth prime numbers: `np 2 12      // 3 37`
+- `help` to display a help message
+
+More about the nth prime number: the first prime numbers are 2 3 5 7.
+Therefore, the 1st prime number is 2, the 2nd prime number is 3, the 3rd is 5 and
+so on. The command allows you to fetch any number of nth prime numbers at a time.
+
+## Repository structure
+
+`./calc` contains the 'business implementation' - in reality, returning basic values
+from inputs. It also contains the protobuf definition and the generated protobuf
+`.pb.go` files.
+I chose to use [Protocol buffers](https://developers.google.com/protocol-buffers/),
+because it plays well with gRPC and allowed me to develop a client/server
+prototype quickly.
+
+The root repository contains the repository CI configuration (scripts, Docker, gitignore...)
+as well as the server code. The server API is defined in `server.go` and the service
+entrypoint is in `main.go`.
+
+The CLI can be found in the eponym folder: `./cli`. The client API is defined in
+`client.go`, the interactive commands are isolated in `./commands` and the logic
+is in the entrypoint, `cli.go`.
+
+## Run using Docker Compose
+
+```
+docker-compose up -d twelvefa
+docker-compose run calcli
+./cli help
+./cli connect twelvefa:80
+> max 2 6
+> np 9999 1234 1 2 3 4
+> exit
+```
+
+## Run from source
 
 ```
 # install the dependencies
 ./install.sh
 
-# generate the .pb.go files
+# regenerate the protobuf files
 ./generate.sh calc
 
 # test
@@ -19,9 +62,17 @@ go test . ./calc
 # benchmark
 go test ./calc -bench=.
 
-# run a cli
-docker-compose up
-docker exec -it calcli /bin/bash
+# build and run the server
+go build
+PORT=3000 ./twelvefa
+
+# open a new terminal
+cd ./cli
+go build
+./cli connect :3000
+> max 2 6
+> np 9999 1234 1 2 3 4
+> exit
 ```
 
 ## Deploy
