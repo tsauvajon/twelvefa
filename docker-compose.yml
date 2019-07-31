@@ -6,3 +6,7 @@ services:
     restart: always
     ports:
       - "3000:80"
+  cli:
+    build:
+      context: ./cli
+    restart: always
