@@ -6,21 +6,23 @@
 
 ## Usage
 
-### Test
+```
+# install the dependencies
+./install.sh
 
-`go test . ./calc`
+# generate the .pb.go files
+./generate.sh calc
 
-### Benchmark
+# test
+go test . ./calc
 
-`go test ./calc -bench=.`
+# benchmark
+go test ./calc -bench=.
 
-### Generate the .pb.go files
-
-`./generate.sh calc`
-
-### Debug
-
-`docker-compose up`
+# run a cli
+docker-compose up
+docker exec -it calcli /bin/bash
+```
 
 ## 12 Factors
 
@@ -150,7 +152,8 @@ route is through the reverse proxy.
 
 ## Next steps
 
-- Create a secure connection with SSL
+- Create a secure connection with 
+- Cache the dependencies for faster Docker builds
 - Improve monitoring: use New Relic, Data Dog or grafana to create useful dashboards
 - Improve logging: write more logs, e.g. log errors
 - Use a configuration manager: use Vault or KMS to manage configs
