@@ -126,15 +126,22 @@ jobs:
     environment:
       SERVICE_IMAGE_NAME: twelvefa
       TF_CREDS: ./creds/terraform.json
+      TF_VERSION: 0.12.6
     steps:
       - checkout
+
+      - run:
+          name: Install Terraform
+          command: |
+            wget https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
+            unzip terraform_${TF_VERSION}_linux_amd64.zip
 
       - run: 
           name: Apply the infrastructure
           command: |
-            terraform init
-            terraform apply -auto-approve
-            # In a real world environment, I would store the tfstate in a bucket
+            ./terraform init -input=false
+            ./terraform apply -auto-approve -input=false
+            # In a production project, I would store the tfstate in a bucket
 
       - run:
           name: Init the gcloud SDK
@@ -154,7 +161,7 @@ jobs:
       # I did my tests by running the commands outside of the CI.
       - run: 
           name: Tear down the infra
-          command: terraform destroy -auto-approve
+          command: ./terraform destroy -auto-approve -input=false
 
 workflows:
   version: 2
