@@ -8,20 +8,36 @@ jobs:
     steps:
       - checkout
 
-      - run: ./install.ci.sh
-      - run: mkdir artifacts
-      - run: go test -v . ./calc > ./artifacts/tests.txt
-      - run: cat ./artifacts/tests.txt
-      - run: go test ./calc -bench=. > ./artifacts/benchmark.txt
-      - run: cat ./artifacts/benchmark.txt
-      - run: ls ./artifacts
-      - run: ./generate.ci.sh
-      - run: go build
-      - run: PORT=3000 ./twelvefa & # run the service in the background to test the client
-      - run: sleep 5 # wait for 5 seconds for the service to start
-      - run: go test -v ./cli > ./artifacts/cli-tests.txt
-      - run: pkill ./twelvefa
-      - run: cat ./artifacts/cli-tests.txt
+      - run: 
+          name: Init
+          command: |
+            chmod +x install.ci.sh
+            ./install.ci.sh
+            mkdir artifacts
+      - run:
+          name: Build
+          command: |
+            chmod +x generate.ci.sh
+            ./generate.ci.sh
+            go build
+      - run: 
+          name: Test the service
+          command: |
+            go test -v . ./calc > ./artifacts/tests.txt
+            cat ./artifacts/tests.txt
+      - run: 
+          name: Benchmark calc
+          command: |
+            go test ./calc -bench=. > ./artifacts/benchmark.txt
+            cat ./artifacts/benchmark.txt
+      - run: 
+          name: Test the client
+          command: |
+            PORT=3000 ./twelvefa & # run the service in the background to test the client
+            sleep 5 # wait for the service to start
+            go test -v ./cli > ./artifacts/cli-tests.txt
+            pkill ./twelvefa
+            cat ./artifacts/cli-tests.txt
 
       - store_artifacts:
           path: artifacts
