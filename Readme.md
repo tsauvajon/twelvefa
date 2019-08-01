@@ -211,33 +211,21 @@ A: [TODO]
 Q: **How would this service be accessed and used from an external client from
 the cluster?**
 
-A: To access the service from an external client from the cluster, I would have
-to either expose the service directly through a public IP, or use a Reverse Proxy.
-The advantage of a reverse proxy is that you can manage the SSL certificates,
-routing, load balancing etc. outside of the actual service. It also removes any
-direct access to the internal service, the only open route is through the reverse
-proxy.
-I could be using any web server or proxy, but my first
-choice would be nginx as it is lightweight, easy to configure and plays well
-in a microservices environment.
-The schema would be basically the same for any Cloud Provider:
+A: To access the service from an external client from the cluster, the schema
+would be basically the same for any Cloud Provider:
 - create a Public IP address
 - associate it with the Kubernetes cluster
-- create a rule/security group to allow tcp 80 and/or tcp 443 through (or any other port used)
-- redirect the traffic from this IP to the reverse proxy service (e.g. using an Ingress)
-- add a rule in the reverse proxy to forward requests and responses between the
-client and the internal service; any load-balancing rule would be useful here.
+- configure an Ingress to redirect the traffic to the service
 
-Example ingress.yaml, after having deployed nginx in the cluster:
+Example ingress.yaml:
 ```
+apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: yaml-ingress
-  annotations:
-    kubernetes.io/ingress.global-static-ip-name: ingress-static
+  name: twelvefa-ingress
 spec:
   backend:
-    serviceName: nginx
+    serviceName: twelvefa
     servicePort: 80
 ```
 
@@ -256,6 +244,23 @@ Environment variables to set.
 ### Local environment
 
 [TODO]
+
+## Production
+
+`kubectly get services`
+NAME         | TYPE       | CLUSTER-IP     | EXTERNAL-IP |  PORT(S)  |  AGE
+-------------|------------|----------------|-------------|-----------|-----
+kubernetes   | ClusterIP  | 10.11.240.1    | \<none>      |  443/TCP  |  29m
+twelvefa     | ClusterIP  | 10.11.242.192  | \<none>      |  3000/TCP |  16m
+
+`kubectly get pods`
+NAME                       | READY  | STATUS   | RESTARTS  | AGE
+---------------------------|--------|----------|-----------|-------
+calcli-7484f77f44-jzz7k    | 1/1    | Running  | 0         | 15m
+calcli-7484f77f44-rd4nl    | 1/1    | Running  | 0         | 15m
+twelvefa-7bb6f58659-2lpjb  | 1/1    | Running  | 0         | 15m
+twelvefa-7bb6f58659-8q2r4  | 1/1    | Running  | 0         | 15m
+twelvefa-7bb6f58659-n22vn  | 1/1    | Running  | 0         | 15m
 
 ## Next steps
 
@@ -281,3 +286,4 @@ Environment variables to set.
   - Sieve of Erathostenes: https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes
 - Event Sourcing: https://martinfowler.com/eaaDev/EventSourcing.html
 - Google Container Registry: https://cloud.google.com/container-registry/docs/
+- Terraform: https://www.terraform.io/docs/providers/google

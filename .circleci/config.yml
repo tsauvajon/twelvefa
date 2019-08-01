@@ -81,6 +81,7 @@ jobs:
           name: Build the CLI Docker image
           command: >-
             docker build
+            -f ./cli/Dockerfile
             -t gcr.io/${GOOGLE_PROJECT_ID}/${CLI_IMAGE_NAME}:latest
             --build-arg CIRCLECI_BUILD_NUMBER=${CIRCLE_BUILD_NUM} .
 
@@ -146,13 +147,7 @@ jobs:
             gcloud container clusters get-credentials ${GOOGLE_CLUSTER_NAME}
             gcloud auth configure-docker
 
-      # - run:
-      #     name: Deploy the pods
-      #     command: |
-      #       kubectl apply -f k8s
-      #       # Add an annotation that will change with every build
-      #       # to force the redeployment
-      #       kubectl patch deployment twelvefa -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}"
+      - run: kubectl apply -f k8s
 
       # I don't want to keep the project up as this is just a PoC,
       # so immediatly after creating the infra I destroy it.
