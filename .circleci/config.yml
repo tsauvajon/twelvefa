@@ -6,7 +6,7 @@ jobs:
 
     working_directory: /home/circleci/twelvefa
     environment:
-      ARTIFACTS: ./arfifacts
+      ARTIFACTS: /home/circleci/twelvefa/arfifacts
     steps:
       - checkout
 
@@ -18,7 +18,7 @@ jobs:
       - run: cat $ARTIFACTS/benchmark.txt
       - run: go build
       - run: PORT=3000 ./twelvefa & # run the service in the background to test the client
-      - run: go test -v ./cli >> $ARTIFACTS/cli-tests.txt
+      - run: go test -v ./cli > $ARTIFACTS/cli-tests.txt
       - run: pkill ./twelvefa
       - run: cat $ARTIFACTS/cli-tests.txt
 
