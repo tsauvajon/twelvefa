@@ -78,16 +78,10 @@ go build
 ## Deploy
 
 Most of the steps for creating the GCP project are described in `init-gcp.sh`.  
-This file has not been tested, consider running each command manually. I think
-I forgot to include a few of the commands I ran.
+This file has not been tested, consider running each command manually.
 
-After the project was correctly configured, the service is deployed on GKE
+After the project is correctly configured, the service is deployed on GKE
 by CircleCI.
-
-Env variables to set:
-`TF_VAR_billing_account`: `gcloud beta billing accounts list`
-`TF_CREDS`: where to save the creds json file.
-`PROJECT_ID`: GCP Project ID
 
 ## 12 Factors
 
@@ -238,19 +232,27 @@ spec:
 Environment variables to set.
 
 ### In CircleCI
+
+Example configuration:
 - `GOOGLE_CIRCLECI`: GCP CircleCI service account credentials (json content)
 - `GOOGLE_TERRRAFORM`: GCP Terraform service account credentials (json content)
-- `GOOGLE_CLUSTER_NAME`: GKE cluster name
-- `GOOGLE_COMPUTE_ZONE`: `us-east1-c` for example
-- `GOOGLE_REGION`: `us-east1` for example
+- `GOOGLE_CLUSTER_NAME`: `twelvefa-gke-cluster`
+- `GOOGLE_COMPUTE_ZONE`: `us-east1-c`
+- `GOOGLE_REGION`: `us-east1`
 - `GOOGLE_PROJECT_ID`: `ori-tsauvajon`
 
 ### Local environment
 
--`PROJECT_ID`: `ori-tsauvajon`
--`TF_CREDS`: `./creds/terraform.json`
--`CIRCLECI_CREDS`: `./creds/circleci.json`
--`PORT`: which port the service will be run on (ex: `3000`)
+Example configuration:
+
+```
+export PROJECT_ID=ori-tsauvajon
+export TF_CREDS=./creds/terraform.json
+export CIRCLECI_CREDS=./creds/circleci.json
+export PORT=3000 # what port will the service run on locally?
+export GOOGLE_COMPUTE_ZONE=us-east1-c
+export GOOGLE_COMPUTE_REGION=us-east1
+```
 
 ## Production
 
@@ -270,18 +272,6 @@ calcli-7484f77f44-rd4nl    | 1/1    | Running  | 0         | 15m
 twelvefa-7bb6f58659-2lpjb  | 1/1    | Running  | 0         | 15m
 twelvefa-7bb6f58659-8q2r4  | 1/1    | Running  | 0         | 15m
 twelvefa-7bb6f58659-n22vn  | 1/1    | Running  | 0         | 15m
-
-```
-kubectl exec -it calcli-7484f77f44-jzz7k -- /bin/bash
-./cli connect
->max 2 99
-99
->add -13 -2
--15
->np 1 99 1234
-
->exit
-```
 
 ## Next steps
 
