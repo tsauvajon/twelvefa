@@ -2,7 +2,7 @@
 
 ## Summary
 
-This repository contains a microservices and a CLI to use this service, following
+This repository contains a microservice and a CLI to use this service, following
 the [12factor](https://12factor.net/) principles.
 
 The CLI allows you to connect to a gRPC server: `cli connect $address`. Once
@@ -38,8 +38,8 @@ is in the entrypoint, `cli.go`.
 ## Run using Docker Compose
 
 ```
-docker-compose up -d twelvefa
-docker-compose run calcli
+docker-compose up -d twelvefa # backend
+docker-compose run calcli     # cli
 ./cli help
 ./cli connect twelvefa:80
 > max 2 6
@@ -62,8 +62,15 @@ go test . ./calc
 # benchmark
 go test ./calc -bench=.
 
-# build and run the server
+# build
 go build
+
+# test the client
+PORT=3001 ./twelvefa & # run the service in the background to test the client
+TWELVEFA_ADDRESS=:3001 go test -v ./cli
+pkill ./twelvefa
+
+# run the backend
 PORT=3000 ./twelvefa
 
 # open a new terminal
@@ -78,16 +85,10 @@ go build
 ## Deploy
 
 Most of the steps for creating the GCP project are described in `init-gcp.sh`.  
-This file has not been tested, consider running each command manually. I think
-I forgot to include a few of the commands I ran.
+This file has not been tested, consider running each command manually.
 
-After the project was correctly configured, the service is deployed on GKE
+After the project is correctly configured, the service is deployed on GKE
 by CircleCI.
-
-Env variables to set:
-`TF_VAR_billing_account`: `gcloud beta billing accounts list`
-`TF_CREDS`: where to save the creds json file.
-`PROJECT_ID`: GCP Project ID
 
 ## 12 Factors
 
@@ -144,7 +145,7 @@ port 80: `docker run -p 3000:80`.
 ### VIII. Concurrency
 *Scale out via the process model*
 
-Many nodes are run concurrently, and the queries are load balanced between them,
+Many nodes are run concurrently, and the queries are load-balanced between them,
 by Kubernetes. Scaling vertically is possible, by just using bigger machines. A
 better way of scaling would be to scale vertically, by adding more nodes (machines)
 or more replicas of the same container.
@@ -170,7 +171,7 @@ would be deployed with Terraform and would be the same as production.
 ### XI. Logs
 *Treat logs as event streams*
 
-Logs are written to the standard output, `stderr`. They can be read with
+Logs are written to the standard output, `stdout`. They can be read with
 `docker logs ...` for example.
 
 ### XII. Admin processes
@@ -183,7 +184,7 @@ Generating the executable file is done through Docker, and is again a one-off
 process.
 
 Every other task that would require several actions will be included in a single
-executable bash file for that task, that would in turn run all of the actions.
+executable bash file for that task, that would, in turn, run all of the actions.
 
 Future tasks could include database migrations, installing multiple dependencies.
 
@@ -191,12 +192,12 @@ Future tasks could include database migrations, installing multiple dependencies
 
 Q: **Prove how it fits and uses the best cloud native understanding**
 
-A: This applications leverages the Cloud by abstracting all of the infrastructure
+A: This application leverages the Cloud by abstracting all of the infrastructure
 and networking, allowing this repository to focus on the actual code. The
 infrastructure, network. build steps are not manually configured and deployed,
 but merely described through configuration files (Docker/Kubernetes/Terraform...).
 
-The different parts of the application are loosely coupled, and are easy to
+The different parts of the application are loosely coupled and are easy to
 replace, update or horizontally scale by simply adding more machines (note: at a
 bigger scale, other bottlenecks will appear, such a monitoring/databases).
 
@@ -204,67 +205,129 @@ bigger scale, other bottlenecks will appear, such a monitoring/databases).
 
 Q: **How would you expand on this service to allow for the use of an eventstore?**
 
-A: [TODO]
+A: Instead of having queries sent directly from a CLI to a backend, we could use an
+event store. Each command would create a new event. For example, running the command
+`max 2 99` would create a new event that would look something like:  
+`
+  {
+    type: command
+    id: 1
+    command: max
+    parameters: {
+      a: 2
+      b: 99
+    }
+  }
+`  
+The first available backend would then execute the command, and send another event:  
+`
+  {
+    type: result
+    command_id: 1
+    result: 99
+  }
+`  
+The CLI would then receive this event by looking for results for the command_id `1`,
+and display the result: `99`.
+
+With the Pub/Sub (Publisher Subscriber) architecture, a publisher publishes on one
+or several topics, and the subscribers subscribe to any topic they want.  
+In this example, CLIs would publish on the `command` topic and subscribe to the
+`result` topic. The backends would do the opposite.
+
+To go further, we could imagine a logging backing that would subscribe to both
+topics and log all of the events, commands and results.
 
 ## External Access
 
 Q: **How would this service be accessed and used from an external client from
 the cluster?**
 
-A: To access the service from an external client from the cluster, I would have
-to either expose the service directly through a public IP, or use a Reverse Proxy.
-The advantage of a reverse proxy is that you can manage the SSL certificates,
-routing, load balancing etc. outside of the actual service. It also removes any
-direct access to the internal service, the only open route is through the reverse
-proxy.
-I could be using any web server or proxy, but my first
-choice would be nginx as it is lightweight, easy to configure and plays well
-in a microservices environment.
-The schema would be basically the same for any Cloud Provider:
+A: To access the service from an external client from the cluster, the schema
+would be the same for any Cloud Provider:
 - create a Public IP address
 - associate it with the Kubernetes cluster
-- create a rule/security group to allow tcp 80 and/or tcp 443 through (or any other port used)
-- redirect the traffic from this IP to the reverse proxy service (e.g. using an Ingress)
-- add a rule in the reverse proxy to forward requests and responses between the
-client and the internal service; any load-balancing rule would be useful here.
+- configure an Ingress to redirect traffic to the backend service
 
-Example ingress.yaml, after having deployed nginx in the cluster:
+Example ingress.yaml:
 ```
+apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: yaml-ingress
-  annotations:
-    kubernetes.io/ingress.global-static-ip-name: ingress-static
+  name: twelvefa-ingress
 spec:
   backend:
-    serviceName: nginx
+    serviceName: twelvefa
     servicePort: 80
 ```
+
+I would also have to change the twelvefa service to `NodePort` from `ClusterIP`.
 
 ## Configuration
 
 Environment variables to set.
 
 ### In CircleCI
+
+Example configuration:
 - `GOOGLE_CIRCLECI`: GCP CircleCI service account credentials (json content)
 - `GOOGLE_TERRRAFORM`: GCP Terraform service account credentials (json content)
-- `GOOGLE_CLUSTER_NAME`: GKE cluster name
-- `GOOGLE_COMPUTE_ZONE`: `us-east1-c` for example
-- `GOOGLE_REGION`: `us-east1` for example
+- `GOOGLE_CLUSTER_NAME`: `twelvefa-gke-cluster`
+- `GOOGLE_COMPUTE_ZONE`: `us-east1-c`
+- `GOOGLE_REGION`: `us-east1`
 - `GOOGLE_PROJECT_ID`: `ori-tsauvajon`
 
 ### Local environment
 
-[TODO]
+Example configuration:
+
+```
+export PROJECT_ID=ori-tsauvajon
+export TF_CREDS=./creds/terraform.json
+export CIRCLECI_CREDS=./creds/circleci.json
+export PORT=3000 # what port will the service run on locally?
+export GOOGLE_COMPUTE_ZONE=us-east1-c
+export GOOGLE_COMPUTE_REGION=us-east1
+```
+
+## Production
+
+`kubectl get services`
+
+NAME         | TYPE       | CLUSTER-IP     | EXTERNAL-IP |  PORT(S)  |  AGE
+-------------|------------|----------------|-------------|-----------|-----
+kubernetes   | ClusterIP  | 10.11.240.1    | \<none>     |  443/TCP  |  29m
+twelvefa     | ClusterIP  | 10.11.242.192  | \<none>     |  80/TCP   |  16m
+
+`kubectl get pods`
+
+NAME                       | READY  | STATUS   | RESTARTS  | AGE
+---------------------------|--------|----------|-----------|-------
+calcli-7484f77f44-7mbl6    | 1/1    | Running  | 0         | 15m
+twelvefa-7bb6f58659-2lpjb  | 1/1    | Running  | 0         | 15m
+twelvefa-7bb6f58659-8q2r4  | 1/1    | Running  | 0         | 15m
+twelvefa-7bb6f58659-n22vn  | 1/1    | Running  | 0         | 15m
+
+```
+kubectl exec -it calcli-7484f77f44-7mbl6 -- /bin/bash
+./cli connect ${TWELVEFA_SERVICE_HOST}:${TWELVEFA_SERVICE_PORT}
+calc> max 2 6
+6
+calc> add -34 -2
+-36
+calc> np 11 3 999
+31 5 7907
+calc> exit
+```
 
 ## Next steps
 
 - Add end to end tests (run a server, run commands in the CLI, check results)
-- Automate project creation, API enabling... with Terraform
+- Automate project creation, API enabling... with Terraform instead of a script
 - Cache the dependencies for faster Docker builds (both locally and in the CI)
-- Use a configuration manager: use Vault or KMS to manage configs
-- Create a staging environment to allow for better end-to-end testing before deployment
-- Think about rate limiting at some point
+- Use a configuration manager such as Vault or KMS to manage configs
+- Create a staging environment to test before deploying to production
+- Think about rate-limiting at some point
 - Improve logging: write more logs, e.g. log errors
 - Improve monitoring: use New Relic, Data Dog or grafana to create useful dashboards
 
@@ -280,3 +343,5 @@ Environment variables to set.
   - Euler challenge: https://projecteuler.net/problem=7
   - Sieve of Erathostenes: https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes
 - Event Sourcing: https://martinfowler.com/eaaDev/EventSourcing.html
+- Google Container Registry: https://cloud.google.com/container-registry/docs/
+- Terraform: https://www.terraform.io/docs/providers/google

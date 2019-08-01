@@ -81,6 +81,7 @@ jobs:
           name: Build the CLI Docker image
           command: >-
             docker build
+            -f ./cli/Dockerfile
             -t gcr.io/${GOOGLE_PROJECT_ID}/${CLI_IMAGE_NAME}:latest
             --build-arg CIRCLECI_BUILD_NUMBER=${CIRCLE_BUILD_NUM} .
 
@@ -125,24 +126,44 @@ jobs:
     environment:
       SERVICE_IMAGE_NAME: twelvefa
       TF_CREDS: ./creds/terraform.json
+      TF_VERSION: 0.12.6
     steps:
       - checkout
 
       - run:
-          name: Init the gcloud SDK
+          name: Install Terraform
           command: |
+            curl -O https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
+            apt-get update
+            apt-get install -y unzip
+            unzip terraform_${TF_VERSION}_linux_amd64.zip
             mkdir creds
             echo ${GOOGLE_TERRAFORM} > $TF_CREDS
+
+      - run: 
+          name: Apply the infrastructure
+          command: |
+            ./terraform init -input=false
+            ./terraform apply -auto-approve -input=false
+            # In a production project, I would store the tfstate in a bucket
+
+      - run:
+          name: Init the gcloud SDK
+          command: |
             gcloud auth activate-service-account --key-file $TF_CREDS
             gcloud config set project ${GOOGLE_PROJECT_ID}
             gcloud config set compute/zone ${GOOGLE_COMPUTE_ZONE}
             gcloud container clusters get-credentials ${GOOGLE_CLUSTER_NAME}
+            gcloud auth configure-docker
 
-      - run:
-          name: Apply the infrastructure
-          command: |
-            terraform apply -auto-approve
-            kubectl apply -f k8s
+      - run: kubectl apply -f k8s
+
+      # I don't want to keep the project up as this is just a PoC,
+      # so immediatly after creating the infra I destroy it.
+      # I did my tests by running the commands outside of the CI.
+      - run: 
+          name: Tear down the infra
+          command: ./terraform destroy -auto-approve -input=false
 
 workflows:
   version: 2
@@ -152,3 +173,6 @@ workflows:
       - build:
           requires:
             - test
+      - deploy:
+          requires:
+            - build

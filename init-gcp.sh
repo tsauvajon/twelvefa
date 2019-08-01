@@ -1,10 +1,5 @@
 ## /!\ this file was not tested, I ran all of the commands manually
 
-# using us-east because GCP free tier for Compute is us only
-# and us-east is the closest to Europe
-GCP_ZONE=us-east1-c
-GCP_REGION=us-east1
-
 install_sdk()
 {
     INSTALL_DIR=/home/$USER/gcp
@@ -35,8 +30,8 @@ gcloud projects create ${PROJECT_ID} --set-as-default
 gcloud config set project ${PROJECT_ID}
 
 # set zones
-gcloud config set compute/zone $ZONE
-gcloud config set compute/region $REGION
+gcloud config set compute/zone $GOOGLE_COMPUTE_ZONE
+gcloud config set compute/region $GOOGLE_COMPUTE_REGION
 
 # enable billing
 gcloud beta billing projects link ${PROJECT_ID} \

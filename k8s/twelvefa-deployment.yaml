@@ -1,17 +1,24 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
+  labels:
+    environment: production
+    service: twelvefa
   name: twelvefa
 spec:
-  replicas: 1
+  replicas: 3
   strategy: {}
   template:
+    metadata:
+      labels:
+        environment: production
+        service: twelvefa
     spec:
       containers:
       - env:
         - name: PORT
           value: "80"
-        image: twelvefa
+        image: gcr.io/ori-tsauvajon/twelvefa:latest
         name: twelvefa
         ports:
         - containerPort: 80

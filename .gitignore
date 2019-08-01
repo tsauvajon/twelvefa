@@ -1,17 +1,7 @@
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-twelvefa
-
-# Test binary, build with `go test -c`
-*.test
-
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
-
-# Local environment variables / config
+.terraform
 secret.env
 creds
+twelvefa
+./cli/cli
+*.tfstate
+*.backup

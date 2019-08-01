@@ -30,4 +30,5 @@ ENV CIRCLECI_BUILD_NUMBER=${CIRCLECI_BUILD_NUMBER}
 # Copy the executable from the previous stage
 COPY --from=builder /root/twelvefa/cli/cli /root
 
-ENTRYPOINT /bin/bash
+# Keep the container running
+ENTRYPOINT tail -f /dev/null
