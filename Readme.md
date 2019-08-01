@@ -255,7 +255,10 @@ Environment variables to set.
 
 ### Local environment
 
-[TODO]
+-`PROJECT_ID`: `ori-tsauvajon`
+-`TF_CREDS`: `./creds/terraform.json`
+-`CIRCLECI_CREDS`: `./creds/circleci.json`
+-`PORT`: which port the service will be run on (ex: `3000`)
 
 ## Next steps
 
