@@ -252,12 +252,14 @@ Environment variables to set.
 ## Production
 
 `kubectly get services`
+
 NAME         | TYPE       | CLUSTER-IP     | EXTERNAL-IP |  PORT(S)  |  AGE
 -------------|------------|----------------|-------------|-----------|-----
 kubernetes   | ClusterIP  | 10.11.240.1    | \<none>      |  443/TCP  |  29m
 twelvefa     | ClusterIP  | 10.11.242.192  | \<none>      |  3000/TCP |  16m
 
 `kubectly get pods`
+
 NAME                       | READY  | STATUS   | RESTARTS  | AGE
 ---------------------------|--------|----------|-----------|-------
 calcli-7484f77f44-jzz7k    | 1/1    | Running  | 0         | 15m
