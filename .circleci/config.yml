@@ -128,6 +128,13 @@ jobs:
     steps:
       - checkout
 
+      - run: 
+          name: Apply the infrastructure
+          command: |
+            terraform init
+            terraform apply -auto-approve
+            # In a real world environment, I would store the tfstate in a bucket
+
       - run:
           name: Init the gcloud SDK
           command: |
@@ -137,12 +144,22 @@ jobs:
             gcloud config set project ${GOOGLE_PROJECT_ID}
             gcloud config set compute/zone ${GOOGLE_COMPUTE_ZONE}
             gcloud container clusters get-credentials ${GOOGLE_CLUSTER_NAME}
+            gcloud auth configure-docker
 
-      - run:
-          name: Apply the infrastructure
-          command: |
-            terraform apply -auto-approve
-            kubectl apply -f k8s
+      # - run:
+      #     name: Deploy the pods
+      #     command: |
+      #       kubectl apply -f k8s
+      #       # Add an annotation that will change with every build
+      #       # to force the redeployment
+      #       kubectl patch deployment twelvefa -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}"
+
+      # I don't want to keep the project up as this is just a PoC,
+      # so immediatly after creating the infra I destroy it.
+      # I did my tests by running the commands outside of the CI.
+      - run: 
+          name: Tear down the infra
+          command: terraform destroy -auto-approve
 
 workflows:
   version: 2
@@ -152,3 +169,6 @@ workflows:
       - build:
           requires:
             - test
+      - deploy:
+          requires:
+            - build

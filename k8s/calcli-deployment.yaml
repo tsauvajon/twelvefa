@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: calcli
 spec:
-  replicas: 1
+  replicas: 2
   strategy: {}
   template:
     spec:

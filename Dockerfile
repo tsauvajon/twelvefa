@@ -17,7 +17,6 @@ RUN ./generate.sh calc
 # Build the app for alpine, executable name: twelvefa
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o twelvefa
 
-# Best image I found to deploy to GCP
 # Use alpine for faster pulls and a smaller image
 # Use a multi-stage Dockerfile to avoid keeping anything unecessary in the final image
 FROM google/cloud-sdk:255.0.0-alpine

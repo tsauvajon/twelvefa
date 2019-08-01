@@ -280,3 +280,4 @@ Environment variables to set.
   - Euler challenge: https://projecteuler.net/problem=7
   - Sieve of Erathostenes: https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes
 - Event Sourcing: https://martinfowler.com/eaaDev/EventSourcing.html
+- Google Container Registry: https://cloud.google.com/container-registry/docs/
