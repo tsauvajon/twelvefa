@@ -20,7 +20,7 @@ resource "google_container_cluster" "gke-cluster" {
 
     node_config {
       preemptible  = true
-      machine_type = "f1-micro"
+      machine_type = "n1-standard-1"
       disk_size_gb = 30
 
       oauth_scopes = [
