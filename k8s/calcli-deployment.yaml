@@ -1,13 +1,18 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
+  labels:
+    environment: production
   name: calcli
 spec:
   replicas: 2
   strategy: {}
   template:
+    metadata:
+      labels:
+        environment: production
     spec:
       containers:
-      - image: calcli
+      - image: gcr.io/ori-tsauvajon/calcli:latest
         name: calcli
       restartPolicy: Always
