@@ -10,20 +10,21 @@ jobs:
 
       - run: ./install.ci.sh
       - run: mkdir artifacts
-      - run: go test -v . ./calc > /home/circleci/twelvefa/artifacts/tests.txt
-      - run: cat /home/circleci/twelvefa/artifacts/tests.txt
-      - run: go test ./calc -bench=. > /home/circleci/twelvefa/artifacts/benchmark.txt
-      - run: cat /home/circleci/twelvefa/artifacts/benchmark.txt
-      - run: ls /home/circleci/twelvefa/artifacts
+      - run: go test -v . ./calc > ./artifacts/tests.txt
+      - run: cat ./artifacts/tests.txt
+      - run: go test ./calc -bench=. > ./artifacts/benchmark.txt
+      - run: cat ./artifacts/benchmark.txt
+      - run: ls ./artifacts
+      - run: ./generate.ci.sh
       - run: go build
       - run: PORT=3000 ./twelvefa & # run the service in the background to test the client
       - run: sleep 5 # wait for 5 seconds for the service to start
-      - run: go test -v ./cli #> ./artifacts/cli-tests.txt
+      - run: go test -v ./cli > ./artifacts/cli-tests.txt
       - run: pkill ./twelvefa
-      # - run: cat ./artifacts/cli-tests.txt
+      - run: cat ./artifacts/cli-tests.txt
 
       - store_artifacts:
-          path: arfifacts
+          path: artifacts
 
   build:
     docker:

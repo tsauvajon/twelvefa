@@ -5,6 +5,7 @@ PROTOC=protoc-${PROTOC_VERSION}-${OS}-${ARCH}.zip
 PROTOC_URL=https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC}
 
 wget $PROTOC_URL
-unzip ${PROTOC} -d /usr/local
+mkdir tmp
+unzip ${PROTOC} -d tmp
 go get
 go get github.com/golang/protobuf/protoc-gen-go
