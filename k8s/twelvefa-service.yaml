@@ -5,7 +5,10 @@ metadata:
     service: twelvefa
   name: twelvefa
 spec:
+  type: "NodePort"
   ports:
   - name: "80"
     port: 80
     targetPort: 80
+  selector:
+    service: twelvefa

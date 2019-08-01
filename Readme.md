@@ -301,11 +301,22 @@ twelvefa     | ClusterIP  | 10.11.242.192  | \<none>      |  3000/TCP |  16m
 
 NAME                       | READY  | STATUS   | RESTARTS  | AGE
 ---------------------------|--------|----------|-----------|-------
-calcli-7484f77f44-jzz7k    | 1/1    | Running  | 0         | 15m
-calcli-7484f77f44-rd4nl    | 1/1    | Running  | 0         | 15m
+calcli-7484f77f44-7mbl6    | 1/1    | Running  | 0         | 15m
 twelvefa-7bb6f58659-2lpjb  | 1/1    | Running  | 0         | 15m
 twelvefa-7bb6f58659-8q2r4  | 1/1    | Running  | 0         | 15m
 twelvefa-7bb6f58659-n22vn  | 1/1    | Running  | 0         | 15m
+
+```
+kubectl exec -it calcli-7484f77f44-7mbl6 -- /bin/bash
+./cli connect ${TWELVEFA_SERVICE_HOST}:${TWELVEFA_SERVICE_PORT}
+calc> max 2 6
+6
+calc> add -34 -2
+-36
+calc> np 11 3 999
+31 5 7907
+calc> exit
+```
 
 ## Next steps
 
