@@ -2,7 +2,7 @@
 
 ## Summary
 
-This repository contains a microservices and a CLI to use this service, following
+This repository contains a microservice and a CLI to use this service, following
 the [12factor](https://12factor.net/) principles.
 
 The CLI allows you to connect to a gRPC server: `cli connect $address`. Once
@@ -145,7 +145,7 @@ port 80: `docker run -p 3000:80`.
 ### VIII. Concurrency
 *Scale out via the process model*
 
-Many nodes are run concurrently, and the queries are load balanced between them,
+Many nodes are run concurrently, and the queries are load-balanced between them,
 by Kubernetes. Scaling vertically is possible, by just using bigger machines. A
 better way of scaling would be to scale vertically, by adding more nodes (machines)
 or more replicas of the same container.
@@ -171,7 +171,7 @@ would be deployed with Terraform and would be the same as production.
 ### XI. Logs
 *Treat logs as event streams*
 
-Logs are written to the standard output, `stderr`. They can be read with
+Logs are written to the standard output, `stdout`. They can be read with
 `docker logs ...` for example.
 
 ### XII. Admin processes
@@ -184,7 +184,7 @@ Generating the executable file is done through Docker, and is again a one-off
 process.
 
 Every other task that would require several actions will be included in a single
-executable bash file for that task, that would in turn run all of the actions.
+executable bash file for that task, that would, in turn, run all of the actions.
 
 Future tasks could include database migrations, installing multiple dependencies.
 
@@ -192,12 +192,12 @@ Future tasks could include database migrations, installing multiple dependencies
 
 Q: **Prove how it fits and uses the best cloud native understanding**
 
-A: This applications leverages the Cloud by abstracting all of the infrastructure
+A: This application leverages the Cloud by abstracting all of the infrastructure
 and networking, allowing this repository to focus on the actual code. The
 infrastructure, network. build steps are not manually configured and deployed,
 but merely described through configuration files (Docker/Kubernetes/Terraform...).
 
-The different parts of the application are loosely coupled, and are easy to
+The different parts of the application are loosely coupled and are easy to
 replace, update or horizontally scale by simply adding more machines (note: at a
 bigger scale, other bottlenecks will appear, such a monitoring/databases).
 
@@ -230,9 +230,9 @@ The first available backend would then execute the command, and send another eve
 The CLI would then receive this event by looking for results for the command_id `1`,
 and display the result: `99`.
 
-With the Pub Sub (Publisher Subscriber) architecture, a publisher publishes on one
+With the Pub/Sub (Publisher Subscriber) architecture, a publisher publishes on one
 or several topics, and the subscribers subscribe to any topic they want.  
-In this example, CLIs would publish on the `command` topic and subcribe to the
+In this example, CLIs would publish on the `command` topic and subscribe to the
 `result` topic. The backends would do the opposite.
 
 To go further, we could imagine a logging backing that would subscribe to both
@@ -244,10 +244,10 @@ Q: **How would this service be accessed and used from an external client from
 the cluster?**
 
 A: To access the service from an external client from the cluster, the schema
-would be basically the same for any Cloud Provider:
+would be the same for any Cloud Provider:
 - create a Public IP address
 - associate it with the Kubernetes cluster
-- configure an Ingress to redirect the traffic to the service
+- configure an Ingress to redirect traffic to the backend service
 
 Example ingress.yaml:
 ```
@@ -290,14 +290,14 @@ export GOOGLE_COMPUTE_REGION=us-east1
 
 ## Production
 
-`kubectly get services`
+`kubectl get services`
 
 NAME         | TYPE       | CLUSTER-IP     | EXTERNAL-IP |  PORT(S)  |  AGE
 -------------|------------|----------------|-------------|-----------|-----
 kubernetes   | ClusterIP  | 10.11.240.1    | \<none>      |  443/TCP  |  29m
 twelvefa     | ClusterIP  | 10.11.242.192  | \<none>      |  3000/TCP |  16m
 
-`kubectly get pods`
+`kubectl get pods`
 
 NAME                       | READY  | STATUS   | RESTARTS  | AGE
 ---------------------------|--------|----------|-----------|-------
@@ -310,11 +310,11 @@ twelvefa-7bb6f58659-n22vn  | 1/1    | Running  | 0         | 15m
 ## Next steps
 
 - Add end to end tests (run a server, run commands in the CLI, check results)
-- Automate project creation, API enabling... with Terraform
+- Automate project creation, API enabling... with Terraform instead of a script
 - Cache the dependencies for faster Docker builds (both locally and in the CI)
-- Use a configuration manager: use Vault or KMS to manage configs
-- Create a staging environment to allow for better end-to-end testing before deployment
-- Think about rate limiting at some point
+- Use a configuration manager such as Vault or KMS to manage configs
+- Create a staging environment to test before deploying to production
+- Think about rate-limiting at some point
 - Improve logging: write more logs, e.g. log errors
 - Improve monitoring: use New Relic, Data Dog or grafana to create useful dashboards
 
