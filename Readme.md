@@ -38,8 +38,8 @@ is in the entrypoint, `cli.go`.
 ## Run using Docker Compose
 
 ```
-docker-compose up -d twelvefa
-docker-compose run calcli
+docker-compose up -d twelvefa # backend
+docker-compose run calcli     # cli
 ./cli help
 ./cli connect twelvefa:80
 > max 2 6
@@ -62,8 +62,15 @@ go test . ./calc
 # benchmark
 go test ./calc -bench=.
 
-# build and run the server
+# build
 go build
+
+# test the client
+PORT=3001 ./twelvefa & # run the service in the background to test the client
+TWELVEFA_ADDRESS=:3001 go test -v ./cli
+pkill ./twelvefa
+
+# run the backend
 PORT=3000 ./twelvefa
 
 # open a new terminal
@@ -198,11 +205,38 @@ bigger scale, other bottlenecks will appear, such a monitoring/databases).
 
 Q: **How would you expand on this service to allow for the use of an eventstore?**
 
-A: At the current state of the project, I probably wouldn't! We don't have any
-data to store at the moment.
-If the service grew and had data to store, 
+A: Instead of having queries sent directly from a CLI to a backend, we could use an
+event store. Each command would create a new event. For example, running the command
+`max 2 99` would create a new event that would look something like:  
+`
+  {
+    type: command
+    id: 1
+    command: max
+    parameters: {
+      a: 2
+      b: 99
+    }
+  }
+`  
+The first available backend would then execute the command, and send another event:  
+`
+  {
+    type: result
+    command_id: 1
+    result: 99
+  }
+`  
+The CLI would then receive this event by looking for results for the command_id `1`,
+and display the result: `99`.
 
-[TODO]
+With the Pub Sub (Publisher Subscriber) architecture, a publisher publishes on one
+or several topics, and the subscribers subscribe to any topic they want.  
+In this example, CLIs would publish on the `command` topic and subcribe to the
+`result` topic. The backends would do the opposite.
+
+To go further, we could imagine a logging backing that would subscribe to both
+topics and log all of the events, commands and results.
 
 ## External Access
 
