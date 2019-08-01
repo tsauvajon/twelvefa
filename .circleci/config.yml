@@ -137,6 +137,8 @@ jobs:
             apt-get update
             apt-get install -y unzip
             unzip terraform_${TF_VERSION}_linux_amd64.zip
+            mkdir creds
+            echo ${GOOGLE_TERRAFORM} > $TF_CREDS
 
       - run: 
           name: Apply the infrastructure
@@ -148,8 +150,6 @@ jobs:
       - run:
           name: Init the gcloud SDK
           command: |
-            mkdir creds
-            echo ${GOOGLE_TERRAFORM} > $TF_CREDS
             gcloud auth activate-service-account --key-file $TF_CREDS
             gcloud config set project ${GOOGLE_PROJECT_ID}
             gcloud config set compute/zone ${GOOGLE_COMPUTE_ZONE}

@@ -204,7 +204,11 @@ bigger scale, other bottlenecks will appear, such a monitoring/databases).
 
 Q: **How would you expand on this service to allow for the use of an eventstore?**
 
-A: [TODO]
+A: At the current state of the project, I probably wouldn't! We don't have any
+data to store at the moment.
+If the service grew and had data to store, 
+
+[TODO]
 
 ## External Access
 
@@ -261,6 +265,18 @@ calcli-7484f77f44-rd4nl    | 1/1    | Running  | 0         | 15m
 twelvefa-7bb6f58659-2lpjb  | 1/1    | Running  | 0         | 15m
 twelvefa-7bb6f58659-8q2r4  | 1/1    | Running  | 0         | 15m
 twelvefa-7bb6f58659-n22vn  | 1/1    | Running  | 0         | 15m
+
+```
+kubectl exec -it calcli-7484f77f44-jzz7k -- /bin/bash
+./cli connect
+>max 2 99
+99
+>add -13 -2
+-15
+>np 1 99 1234
+
+>exit
+```
 
 ## Next steps
 

@@ -1,4 +1,6 @@
 provider "google" {
+  version = "~> 2.11"
+
   credentials = "${file("./creds/terraform.json")}"
   project     = "ori-tsauvajon"
   region      = "us-east1"
