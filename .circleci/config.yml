@@ -5,25 +5,23 @@ jobs:
       - image: circleci/golang:1.12.7
 
     working_directory: /home/circleci/twelvefa
-    environment:
-      ARTIFACTS: /home/circleci/twelvefa/arfifacts
     steps:
       - checkout
 
       - run: ./install.ci.sh
-      - run: mkdir $ARTIFACTS
-      - run: go test -v . ./calc > $ARTIFACTS/tests.txt
-      - run: cat $ARTIFACTS/tests.txt
-      - run: go test ./calc -bench=. > $ARTIFACTS/benchmark.txt
-      - run: cat $ARTIFACTS/benchmark.txt
+      - run: mkdir artifacts
+      - run: go test -v . ./calc > ./artifacts/tests.txt
+      - run: cat ./artifacts/tests.txt
+      - run: go test ./calc -bench=. > ./artifacts/benchmark.txt
+      - run: cat ./artifacts/benchmark.txt
       - run: go build
       - run: PORT=3000 ./twelvefa & # run the service in the background to test the client
-      - run: go test -v ./cli > $ARTIFACTS/cli-tests.txt
+      - run: go test -v ./cli > ./artifacts/cli-tests.txt
       - run: pkill ./twelvefa
-      - run: cat $ARTIFACTS/cli-tests.txt
+      - run: cat ./artifacts/cli-tests.txt
 
       - store_artifacts:
-          path: $ARTIFACTS
+          path: arfifacts
 
   build:
     docker:
@@ -32,6 +30,7 @@ jobs:
     working_directory: /home/circleci/twelvefa
     environment:
       IMAGE_NAME: twelvefa
+      CIRCLECI_CREDS: ./creds/circleci.json
     steps:
       - checkout
 
@@ -62,16 +61,49 @@ jobs:
             gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
             gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:${CIRCLE_BUILD_NUM}
 
-      # TODO: login with gcloud
+      - run:
+          name: Init the gcloud SDK
+          command: |
+            mkdir creds
+            echo ${GOOGLE_CIRCLECI} > $CIRCLECI_CREDS
+            gcloud auth activate-service-account --key-file $CIRCLECI_CREDS
+            gcloud config set project ${GOOGLE_PROJECT_ID}
+            gcloud config set compute/zone ${GOOGLE_COMPUTE_ZONE}
+            gcloud container clusters get-credentials ${GOOGLE_CLUSTER_NAME}
 
-      # - run: 
-      #     name: Push images
-      #     command: |
-      #       docker push gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
-      #       docker push gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:${CIRCLE_BUILD_NUM}
+      - run:
+          name: Push images to the Container Registry
+          command: |
+            docker push gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
+            docker push gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:${CIRCLE_BUILD_NUM}
 
 
-        ## TODO: deploy in another job
+  deploy:
+    docker:
+      - image: google/cloud-sdk:255.0.0
+
+    working_directory: /home/circleci/twelvefa
+    environment:
+      IMAGE_NAME: twelvefa
+      TF_CREDS: ./creds/terraform.json
+    steps:
+      - checkout
+
+      - run:
+          name: Init the gcloud SDK
+          command: |
+            mkdir creds
+            echo ${GOOGLE_CIRCLECI} > $CIRCLECI_CREDS
+            gcloud auth activate-service-account --key-file $CIRCLECI_CREDS
+            gcloud config set project ${GOOGLE_PROJECT_ID}
+            gcloud config set compute/zone ${GOOGLE_COMPUTE_ZONE}
+            gcloud container clusters get-credentials ${GOOGLE_CLUSTER_NAME}
+
+      - run:
+          name: Apply the infrastructure
+          command: |
+            terraform apply -auto-approve
+            # todo: apply the k8s config
 
 workflows:
   version: 2

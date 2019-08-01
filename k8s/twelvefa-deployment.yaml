@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: twelvefa
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    spec:
+      containers:
+      - env:
+        - name: PORT
+          value: "80"
+        image: twelvefa
+        name: twelvefa
+        ports:
+        - containerPort: 80
+      restartPolicy: Always

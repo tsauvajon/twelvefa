@@ -9,9 +9,9 @@ The CLI allows you to connect to a gRPC server: `cli connect $address`. Once
 successfully connected, you enter the interactive mode where you can enter 5
 commands:
 - `exit` to quit the interactive mode
-- `add a b` to add two integers together: `add 2 5     // 7`
-- `max a b` to return the max of two integers: `max 2 5     // 5`
-- `np a [b [c...]]` to return the nth prime numbers: `np 2 12      // 3 37`
+- `add x y` to add two integers together: `add 2 5     // 7`
+- `max x y` to return the max of two integers: `max 2 5     // 5`
+- `np x [y [z...]]` to return the nth prime numbers: `np 2 12      // 3 37`
 - `help` to display a help message
 
 More about the nth prime number: the first prime numbers are 2 3 5 7.
@@ -189,11 +189,22 @@ Future tasks could include database migrations, installing multiple dependencies
 
 ## Cloud Native
 
+Q: **Prove how it fits and uses the best cloud native understanding**
+
+A: This applications leverages the Cloud by abstracting all of the infrastructure
+and networking, allowing this repository to focus on the actual code. The
+infrastructure, network. build steps are not manually configured and deployed,
+but merely described through configuration files (Docker/Kubernetes/Terraform...).
+
+The different parts of the application are loosely coupled, and are easy to
+replace, update or horizontally scale by simply adding more machines (note: at a
+bigger scale, other bottlenecks will appear, such a monitoring/databases).
+
 ## Event Store
 
 Q: **How would you expand on this service to allow for the use of an eventstore?**
 
-A: 
+A:
 
 ## External Access
 
@@ -201,7 +212,12 @@ Q: **How would this service be accessed and used from an external client from
 the cluster?**
 
 A: To access the service from an external client from the cluster, I would have
-to add a Reverse Proxy. I could be using any web server or proxy, but my first
+to either expose the service directly through a public IP, or use a Reverse Proxy.
+The advantage of a reverse proxy is that you can manage the SSL certificates,
+routing, load balancing etc. outside of the actual service. It also removes any
+direct access to the internal service, the only open route is through the reverse
+proxy.
+I could be using any web server or proxy, but my first
 choice would be nginx as it is lightweight, easy to configure and plays well
 in a microservices environment.
 The schema would be basically the same for any Cloud Provider:
@@ -210,26 +226,33 @@ The schema would be basically the same for any Cloud Provider:
 - create a rule/security group to allow tcp 80 and/or tcp 443 through (or any other port used)
 - redirect the traffic from this IP to the reverse proxy service (e.g. using an Ingress)
 - add a rule in the reverse proxy to forward requests and responses between the
-client and the internal service; any load-balancing rule would be useful here
+client and the internal service; any load-balancing rule would be useful here.
 
-This way, there is no direct access to the internal service, and the only open
-route is through the reverse proxy.
+Example ingress.yaml, after having deployed nginx in the cluster:
+```
+kind: Ingress
+metadata:
+  name: yaml-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: ingress-static
+spec:
+  backend:
+    serviceName: nginx
+    servicePort: 80
+```
 
 ## Next steps
 
-- automate project creation, API enabling... with Terraform
-- Create a secure connection with SSL
-- Cache the dependencies for faster Docker builds
-- Improve logging: write more logs, e.g. log errors
+- Add end to end tests (run a server, run commands in the CLI, check results)
+- Automate project creation, API enabling... with Terraform
+- Cache the dependencies for faster Docker builds (both locally and in the CI)
 - Use a configuration manager: use Vault or KMS to manage configs
-- Create a staging environment: duplicate the infrastructure, config and
-deployments to allow for better end-to-end testing before deployment
-- As the service or the ecosystem grows bigger, consider deployment/testing
-strategies that scale better (blue-green, canary...)
+- Create a staging environment to allow for better end-to-end testing before deployment
 - Think about rate limiting at some point
+- Improve logging: write more logs, e.g. log errors
 - Improve monitoring: use New Relic, Data Dog or grafana to create useful dashboards
 
-## Sources used
+## Sources
 
 - 12factor: https://12factor.net/
 - Go Modules: https://github.com/golang/go/wiki/Modules
@@ -240,3 +263,4 @@ strategies that scale better (blue-green, canary...)
 - NthPrimesNumber:
   - Euler challenge: https://projecteuler.net/problem=7
   - Sieve of Erathostenes: https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes
+- Event Sourcing: https://martinfowler.com/eaaDev/EventSourcing.html

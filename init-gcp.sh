@@ -1,3 +1,10 @@
+## /!\ this file was not tested, I ran all of the commands manually
+
+# using us-east because GCP free tier for Compute is us only
+# and us-east is the closest to Europe
+GCP_ZONE=us-east1-c
+GCP_REGION=us-east1
+
 install_sdk()
 {
     INSTALL_DIR=/home/$USER/gcp
@@ -27,27 +34,40 @@ gcloud auth login
 gcloud projects create ${PROJECT_ID} --set-as-default
 gcloud config set project ${PROJECT_ID}
 
+# set zones
+gcloud config set compute/zone $ZONE
+gcloud config set compute/region $REGION
+
 # enable billing
 gcloud beta billing projects link ${PROJECT_ID} \
   --billing-account ${TF_VAR_billing_account}
 
-# create service account
+# create service accounts
 gcloud iam service-accounts create terraform \
   --display-name "Terraform admin account"
+gcloud iam service-accounts create circleci \
+  --display-name "CircleCI service account"
 
 # store credentials in a JSON file
 gcloud iam service-accounts keys create ${TF_CREDS} \
   --iam-account terraform@${PROJECT_ID}.iam.gserviceaccount.com
 
-# add roles
-gcloud projects add-iam-policy-binding ${PROJECT_ID} \
-  --member serviceAccount:terraform@${PROJECT_ID}.iam.gserviceaccount.com \
-  --role roles/viewer
+gcloud iam service-accounts keys create ${CIRCLECI_CREDS} \
+  --iam-account circleci@${PROJECT_ID}.iam.gserviceaccount.com
 
+# add the project editor role to the service account
 gcloud projects add-iam-policy-binding ${PROJECT_ID} \
   --member serviceAccount:terraform@${PROJECT_ID}.iam.gserviceaccount.com \
+  --role roles/editor
+
+# push images to the container registry -- also gives pull access
+gcloud projects add-iam-policy-binding ${PROJECT_ID} \
+  --member serviceAccount:circleci@${PROJECT_ID}.iam.gserviceaccount.com \
   --role roles/storage.admin
 
-# enable APIs
+# enable APIs (gcloud services list --available)
 gcloud services enable compute.googleapis.com
-
+gcloud services enable containerregistry.googleapis.com
+gcloud services enable iam.googleapis.com
+gcloud services enable iamcredentials.googleapis.com
+gcloud services enable container.googleapis.com # GKE

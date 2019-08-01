@@ -12,5 +12,6 @@ twelvefa
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Local environment variables
+# Local environment variables / config
 secret.env
+creds
