@@ -5,6 +5,8 @@ jobs:
       - image: circleci/golang:1.12.7
 
     working_directory: /home/circleci/twelvefa
+    environment:
+      ARTIFACTS: ./arfifacts
     steps:
       - checkout
 
