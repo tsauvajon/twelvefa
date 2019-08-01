@@ -51,7 +51,8 @@ jobs:
 
     working_directory: /home/circleci/twelvefa
     environment:
-      IMAGE_NAME: twelvefa
+      SERVICE_IMAGE_NAME: twelvefa
+      CLI_IMAGE_NAME: calcli
       CIRCLECI_CREDS: ./creds/circleci.json
     steps:
       - checkout
@@ -73,15 +74,29 @@ jobs:
           name: Build the service Docker image
           command: >-
             docker build
-            -t gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
+            -t gcr.io/${GOOGLE_PROJECT_ID}/${SERVICE_IMAGE_NAME}:latest
             --build-arg CIRCLECI_BUILD_NUMBER=${CIRCLE_BUILD_NUM} .
 
       - run:
-          name: Tag image with build nb
+          name: Build the CLI Docker image
+          command: >-
+            docker build
+            -t gcr.io/${GOOGLE_PROJECT_ID}/${CLI_IMAGE_NAME}:latest
+            --build-arg CIRCLECI_BUILD_NUMBER=${CIRCLE_BUILD_NUM} .
+
+      - run:
+          name: Tag the service image with build nb
           command: >-
             docker tag
-            gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
-            gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:${CIRCLE_BUILD_NUM}
+            gcr.io/${GOOGLE_PROJECT_ID}/${SERVICE_IMAGE_NAME}:latest
+            gcr.io/${GOOGLE_PROJECT_ID}/${SERVICE_IMAGE_NAME}:${CIRCLE_BUILD_NUM}
+
+      - run:
+          name: Tag the CLI image with build nb
+          command: >-
+            docker tag
+            gcr.io/${GOOGLE_PROJECT_ID}/${CLI_IMAGE_NAME}:latest
+            gcr.io/${GOOGLE_PROJECT_ID}/${CLI_IMAGE_NAME}:${CIRCLE_BUILD_NUM}
 
       - run:
           name: Init the gcloud SDK
@@ -95,8 +110,11 @@ jobs:
       - run:
           name: Push images to the Container Registry
           command: |
-            docker push gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
-            docker push gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:${CIRCLE_BUILD_NUM}
+            gcloud auth configure-docker
+            docker push gcr.io/${GOOGLE_PROJECT_ID}/${SERVICE_IMAGE_NAME}:latest
+            docker push gcr.io/${GOOGLE_PROJECT_ID}/${SERVICE_IMAGE_NAME}:${CIRCLE_BUILD_NUM}
+            docker push gcr.io/${GOOGLE_PROJECT_ID}/${CLI_IMAGE_NAME}:latest
+            docker push gcr.io/${GOOGLE_PROJECT_ID}/${CLI_IMAGE_NAME}:${CIRCLE_BUILD_NUM}
 
 
   deploy:
@@ -105,7 +123,7 @@ jobs:
 
     working_directory: /home/circleci/twelvefa
     environment:
-      IMAGE_NAME: twelvefa
+      SERVICE_IMAGE_NAME: twelvefa
       TF_CREDS: ./creds/terraform.json
     steps:
       - checkout
@@ -114,8 +132,8 @@ jobs:
           name: Init the gcloud SDK
           command: |
             mkdir creds
-            echo ${GOOGLE_CIRCLECI} > $CIRCLECI_CREDS
-            gcloud auth activate-service-account --key-file $CIRCLECI_CREDS
+            echo ${GOOGLE_TERRAFORM} > $TF_CREDS
+            gcloud auth activate-service-account --key-file $TF_CREDS
             gcloud config set project ${GOOGLE_PROJECT_ID}
             gcloud config set compute/zone ${GOOGLE_COMPUTE_ZONE}
             gcloud container clusters get-credentials ${GOOGLE_CLUSTER_NAME}
@@ -124,7 +142,7 @@ jobs:
           name: Apply the infrastructure
           command: |
             terraform apply -auto-approve
-            # todo: apply the k8s config
+            kubectl apply -f k8s
 
 workflows:
   version: 2
