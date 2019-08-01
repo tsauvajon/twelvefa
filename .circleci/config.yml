@@ -7,12 +7,21 @@ jobs:
     working_directory: /home/circleci/twelvefa
     steps:
       - checkout
-      - run: ./install.ci.sh
-      - run: go test -v . ./calc > tests.txt
-      - run: cat tests.txt
-      - run: go test ./calc -bench=. > benchmark.txt
-      - run: cat benchmark.txt
 
+      - run: ./install.ci.sh
+      - run: mkdir $ARTIFACTS
+      - run: go test -v . ./calc > $ARTIFACTS/tests.txt
+      - run: cat $ARTIFACTS/tests.txt
+      - run: go test ./calc -bench=. > $ARTIFACTS/benchmark.txt
+      - run: cat $ARTIFACTS/benchmark.txt
+      - run: go build
+      - run: PORT=3000 ./twelvefa & # run the service in the background to test the client
+      - run: go test -v ./cli >> $ARTIFACTS/cli-tests.txt
+      - run: pkill ./twelvefa
+      - run: cat $ARTIFACTS/cli-tests.txt
+
+      - store_artifacts:
+          path: $ARTIFACTS
 
   build:
     docker:
