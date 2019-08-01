@@ -8,36 +8,39 @@ jobs:
     steps:
       - checkout
 
-      - run: 
+      - run:
           name: Init
           command: |
             chmod +x install.ci.sh
             ./install.ci.sh
             mkdir artifacts
+
       - run:
           name: Build
           command: |
             chmod +x generate.ci.sh
             ./generate.ci.sh
             go build
-      - run: 
+
+      - run:
           name: Test the service
           command: |
             go test -v . ./calc > ./artifacts/tests.txt
             cat ./artifacts/tests.txt
-      - run: 
+
+      - run:
           name: Benchmark calc
           command: |
             go test ./calc -bench=. > ./artifacts/benchmark.txt
             cat ./artifacts/benchmark.txt
-      - run: 
+
+      - run:
           name: Test the client
           command: |
             PORT=3000 ./twelvefa & # run the service in the background to test the client
             sleep 5 # wait for the service to start
             go test -v ./cli > ./artifacts/cli-tests.txt
-      # - run: pkill ./twelvefa
-      - run: cat ./artifacts/cli-tests.txt
+            cat ./artifacts/cli-tests.txt
 
       - store_artifacts:
           path: artifacts
@@ -66,14 +69,14 @@ jobs:
       # https://circleci.com/docs/2.0/building-docker-images/#overview
       - setup_remote_docker
 
-      - run: 
+      - run:
           name: Build the service Docker image
           command: >-
             docker build
             -t gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE_NAME}:latest
             --build-arg CIRCLECI_BUILD_NUMBER=${CIRCLE_BUILD_NUM} .
-        
-      - run: 
+
+      - run:
           name: Tag image with build nb
           command: >-
             docker tag
@@ -88,7 +91,6 @@ jobs:
             gcloud auth activate-service-account --key-file $CIRCLECI_CREDS
             gcloud config set project ${GOOGLE_PROJECT_ID}
             gcloud config set compute/zone ${GOOGLE_COMPUTE_ZONE}
-            gcloud container clusters get-credentials ${GOOGLE_CLUSTER_NAME}
 
       - run:
           name: Push images to the Container Registry

@@ -204,7 +204,7 @@ bigger scale, other bottlenecks will appear, such a monitoring/databases).
 
 Q: **How would you expand on this service to allow for the use of an eventstore?**
 
-A:
+A: [TODO]
 
 ## External Access
 
@@ -240,6 +240,22 @@ spec:
     serviceName: nginx
     servicePort: 80
 ```
+
+## Configuration
+
+Environment variables to set.
+
+### In CircleCI
+- `GOOGLE_CIRCLECI`: GCP CircleCI service account credentials (json content)
+- `GOOGLE_TERRRAFORM`: GCP Terraform service account credentials (json content)
+- `GOOGLE_CLUSTER_NAME`: GKE cluster name
+- `GOOGLE_COMPUTE_ZONE`: `us-east1-c` for example
+- `GOOGLE_REGION`: `us-east1` for example
+- `GOOGLE_PROJECT_ID`: `ori-tsauvajon`
+
+### Local environment
+
+[TODO]
 
 ## Next steps
 
