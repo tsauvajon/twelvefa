@@ -272,29 +272,27 @@ Environment variables to set.
 Example configuration:
 - `GOOGLE_CIRCLECI`: GCP CircleCI service account credentials (json content)
 - `GOOGLE_TERRRAFORM`: GCP Terraform service account credentials (json content)
-- `GOOGLE_CLUSTER_NAME`: `twelvefa-gke-cluster`
-- `GOOGLE_COMPUTE_ZONE`: `us-east1-c`
-- `GOOGLE_REGION`: `us-east1`
 - `GOOGLE_PROJECT_ID`: `ori-tsauvajon`
-- `TF_VAR_project_id`: `twelvefa-gke-cluster`
-- `TF_VAR_region`: `us-east1`
-- `TF_VAR_location`: `us-east1-c`
-- `TF_VAR_cluster_name`: `ori-tsauvajon`
+- `GOOGLE_REGION`: `us-east1`
+- `GOOGLE_COMPUTE_ZONE`: `us-east1-c`
+- `GOOGLE_CLUSTER_NAME`: `twelvefa-gke-cluster`
 
 ### Local environment
 
 Example configuration:
 
 ```
-# twelvefa service, GCP, Kubernetes
-export GOOGLE_PROJECT_ID=ori-tsauvajon
-export TF_CREDS=./creds/terraform.json
-export CIRCLECI_CREDS=./creds/circleci.json
+# twelvefa service
 export PORT=3000 # what port will the service run on locally?
+
+# GCP
+export GOOGLE_PROJECT_ID=ori-tsauvajon
 export GOOGLE_BILLING_ACCOUNT=[...] # gcloud beta billing accounts list
-export GOOGLE_COMPUTE_REGION=us-east1
+export GOOGLE_COMPUTE_REGION=us-east1 # the GCP free tier is US only
 export GOOGLE_COMPUTE_ZONE=us-east1-c
 export GOOGLE_CLUSTER_NAME=twelvefa-gke-cluster
+export CIRCLECI_CREDS=./creds/circleci.json
+export TF_CREDS=./creds/terraform.json
 
 # terraform variables
 export TF_VAR_project_id=$GOOGLE_PROJECT_ID

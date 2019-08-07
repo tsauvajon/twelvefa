@@ -12,7 +12,7 @@ resource "google_container_cluster" "gke-cluster" {
   location = var.location
 
   node_pool {
-    name       = "twelvefa-node-pool"
+    name               = "twelvefa-node-pool"
     initial_node_count = 3
 
     autoscaling {

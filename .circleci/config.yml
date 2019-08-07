@@ -117,7 +117,6 @@ jobs:
             docker push gcr.io/${GOOGLE_PROJECT_ID}/${CLI_IMAGE_NAME}:latest
             docker push gcr.io/${GOOGLE_PROJECT_ID}/${CLI_IMAGE_NAME}:${CIRCLE_BUILD_NUM}
 
-
   deploy:
     docker:
       - image: google/cloud-sdk:255.0.0
@@ -130,6 +129,10 @@ jobs:
       TF_VERSION: 0.12.6
       GCR_SERVICE_IMAGE: gcr.io/${GOOGLE_PROJECT_ID}/${SERVICE_IMAGE_NAME}:${CIRCLE_BUILD_NUM}
       GCR_CLI_IMAGE: gcr.io/${GOOGLE_PROJECT_ID}/${CLI_IMAGE_NAME}:${CIRCLE_BUILD_NUM}
+      TF_VAR_project_id`: ${GOOGLE_PROJECT_ID}
+      TF_VAR_region`: ${GOOGLE_COMPUTE_REGION}
+      TF_VAR_location`: ${GOOGLE_COMPUTE_ZONE}
+      TF_VAR_cluster_name`: ${GOOGLE_CLUSTER_NAME}
     steps:
       - checkout
 
@@ -147,6 +150,8 @@ jobs:
           name: Apply the infrastructure
           command: |
             ./terraform init -input=false
+            mkdir artifacts
+            ./terraform plan -out artifacts/infra.tfplan > artifacts/tf-changes.txt
             ./terraform apply -auto-approve -input=false
             # In a production project, I would store the tfstate in a bucket
 
@@ -173,6 +178,9 @@ jobs:
       - run: 
           name: Tear down the infra
           command: ./terraform destroy -auto-approve -input=false
+
+      - store_artifacts:
+          path: artifacts
 
 workflows:
   version: 2

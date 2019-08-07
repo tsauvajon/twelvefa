@@ -5,3 +5,5 @@ twelvefa
 ./cli/cli
 *.tfstate
 *.backup
+infra.tfplan
+tf-changes.txt
