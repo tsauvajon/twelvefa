@@ -276,18 +276,31 @@ Example configuration:
 - `GOOGLE_COMPUTE_ZONE`: `us-east1-c`
 - `GOOGLE_REGION`: `us-east1`
 - `GOOGLE_PROJECT_ID`: `ori-tsauvajon`
+- `TF_VAR_project_id`: `twelvefa-gke-cluster`
+- `TF_VAR_region`: `us-east1`
+- `TF_VAR_location`: `us-east1-c`
+- `TF_VAR_cluster_name`: `ori-tsauvajon`
 
 ### Local environment
 
 Example configuration:
 
 ```
-export PROJECT_ID=ori-tsauvajon
+# twelvefa service, GCP, Kubernetes
+export GOOGLE_PROJECT_ID=ori-tsauvajon
 export TF_CREDS=./creds/terraform.json
 export CIRCLECI_CREDS=./creds/circleci.json
 export PORT=3000 # what port will the service run on locally?
-export GOOGLE_COMPUTE_ZONE=us-east1-c
+export GOOGLE_BILLING_ACCOUNT=[...] # gcloud beta billing accounts list
 export GOOGLE_COMPUTE_REGION=us-east1
+export GOOGLE_COMPUTE_ZONE=us-east1-c
+export GOOGLE_CLUSTER_NAME=twelvefa-gke-cluster
+
+# terraform variables
+export TF_VAR_project_id=$GOOGLE_PROJECT_ID
+export TF_VAR_region=$GOOGLE_COMPUTE_REGION
+export TF_VAR_location=$GOOGLE_COMPUTE_ZONE
+export TF_VAR_cluster_name=$GOOGLE_CLUSTER_NAME
 ```
 
 ## Production
@@ -329,7 +342,7 @@ calc> exit
 - Create a staging environment to test before deploying to production
 - Think about rate-limiting at some point
 - Improve logging: write more logs, e.g. log errors
-- Improve monitoring: use New Relic, Data Dog or grafana to create useful dashboards
+- Improve monitoring: use New Relic, Data Dog or InfluxDB + grafana to create useful dashboards
 
 ## Sources
 

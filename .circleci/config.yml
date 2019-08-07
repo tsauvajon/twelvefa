@@ -125,8 +125,11 @@ jobs:
     working_directory: /home/circleci/twelvefa
     environment:
       SERVICE_IMAGE_NAME: twelvefa
+      CLI_IMAGE_NAME: calcli
       TF_CREDS: ./creds/terraform.json
       TF_VERSION: 0.12.6
+      GCR_SERVICE_IMAGE: gcr.io/${GOOGLE_PROJECT_ID}/${SERVICE_IMAGE_NAME}:${CIRCLE_BUILD_NUM}
+      GCR_CLI_IMAGE: gcr.io/${GOOGLE_PROJECT_ID}/${CLI_IMAGE_NAME}:${CIRCLE_BUILD_NUM}
     steps:
       - checkout
 
@@ -156,7 +159,13 @@ jobs:
             gcloud container clusters get-credentials ${GOOGLE_CLUSTER_NAME}
             gcloud auth configure-docker
 
-      - run: kubectl apply -f k8s
+      - run: 
+          name: Deploy the cluster
+          command: |
+            # Use # as a delimiter for sed, to make dealing with forward slashes easier
+            sed "s#gcr.io/ori-tsauvajon/calcli:latest#${GCR_CLI_IMAGE}#g" k8s/calcli-deployment.yaml > k8s/calcli-deployment.yaml
+            sed "s#gcr.io/ori-tsauvajon/calcli:latest#${GCR_SERVICE_IMAGE}#g" k8s/twelvefa-deployment.yaml > k8s/twelvefa-deployment.yaml
+            kubectl apply -f k8s
 
       # I don't want to keep the project up as this is just a PoC,
       # so immediatly after creating the infra I destroy it.

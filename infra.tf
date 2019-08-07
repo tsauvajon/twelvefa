@@ -2,14 +2,14 @@ provider "google" {
   version = "~> 2.11"
 
   credentials = "${file("./creds/terraform.json")}"
-  project     = "ori-tsauvajon"
-  region      = "us-east1"
+  project     = var.project_id
+  region      = var.region
 }
 
 resource "google_container_cluster" "gke-cluster" {
-  name     = "twelvefa-gke-cluster"
+  name     = var.cluster_name
   network  = "default"
-  location = "us-east1-c"
+  location = var.location
 
   node_pool {
     name       = "twelvefa-node-pool"
